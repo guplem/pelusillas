@@ -1,0 +1,20 @@
+/* Class to ensure that the children of a flex WRAP container are stretched to fill the available space */
+/* https://www.joshwcomeau.com/css/center-a-div/#centering-with-flexbox */
+.wrapWithStretchedChildren {
+    display: flex;
+    flex-wrap: wrap;
+}
+.wrapWithStretchedChildren > * {
+    flex: 1 1 auto;
+}
+
+/* Class to center the children of the owner element */
+/* https://udn.realityripple.com/docs/Web/CSS/CSS_Flexible_Box_Layout/Mastering_Wrapping_of_Flex_Items */
+.centeredChildren {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.centeredChildren > * {
+    overflow: auto;
+}

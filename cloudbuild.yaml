@@ -1,0 +1,51 @@
+# Disable automatic buildpacks - use custom build steps only
+steps:
+  # Build the container image
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      [
+        'build',
+        '-t',
+        'europe-southwest1-docker.pkg.dev/${PROJECT_ID}/cloud-run-source-deploy/${_SERVICE_NAME}:${SHORT_SHA}',
+        '.'
+      ]
+    id: 'docker-build'
+
+  # Push the container image to Container Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      ['push', 'europe-southwest1-docker.pkg.dev/${PROJECT_ID}/cloud-run-source-deploy/${_SERVICE_NAME}:${SHORT_SHA}']
+    id: 'docker-push'
+    waitFor: ['docker-build']
+
+  # Deploy to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - '${_SERVICE_NAME}'
+      - '--image=europe-southwest1-docker.pkg.dev/${PROJECT_ID}/cloud-run-source-deploy/${_SERVICE_NAME}:${SHORT_SHA}'
+      - '--region=europe-southwest1'
+      - '--platform=managed'
+      - '--allow-unauthenticated'
+      - '--port=3000'
+      - '--cpu-throttling'
+      - '--memory=512Mi'
+      - '--cpu=1'
+      - '--timeout=300s'
+      - '--cpu-boost'
+      - '--min-instances=0'
+      - '--max-instances=3'
+      - '--startup-probe=httpGet.path=/api/hello,httpGet.port=3000,failureThreshold=5,periodSeconds=10,timeoutSeconds=5'
+    id: 'deploy'
+    waitFor: ['docker-push']
+
+# Set timeout for the entire build process
+timeout: '1800s' # 30 minutes
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+
+substitutions:
+  _SERVICE_NAME: new-service-name # Replace with your service name

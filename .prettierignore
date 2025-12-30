@@ -1,0 +1,12 @@
+node_modules/
+coverage/
+build/
+dist/
+*.svg
+*.md
+.editorconfig
+.env
+.gitignore
+docker/
+.vscode/
+index.css

@@ -1,0 +1,103 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+
+# Diagnostic reports
+report.*.json
+
+# Runtime data
+pids
+*.pid
+*.pid.lock
+*.seed
+
+# Coverage and test output
+coverage
+.nyc_output
+*.lcov
+/coverage
+
+# Compiled output / build artifacts
+build/
+build/Release
+dist
+dist-activities/
+.next
+.nuxt
+out
+.vuepress/dist
+.temp
+.docusaurus
+.serverless/
+.fusebox/
+/.cache
+.parcel-cache
+
+# Dependency directories
+node_modules/
+jspm_packages/
+bower_components/
+web_modules/
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+.pnp.*
+/node_modules
+/.pnp
+.pnp.js
+
+# Caches
+.grunt
+.rpt2_cache/
+.rts2_cache_cjs/
+.rts2_cache_es/
+.rts2_cache_umd/
+.vitepress/cache
+**/.vitepress/cache
+.vscode-test
+.npm
+.eslintcache
+.stylelintcache
+
+# Environment files
+.env
+.env.local
+.env*.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# TypeScript
+*.tsbuildinfo
+
+# REPL / debug history
+.node_repl_history
+.tern-port
+
+# Certificates and keys
+*.pem
+*.crt
+*.key
+
+# Archives and packed files
+*.tgz
+
+# Misc
+.DS_Store
+.gitattributes
+
+# Robo.js, Discord Activity, and Cloudflare specific
+.robo
+.robo/*
+.cloudflare
+.wrangler
+.dev.vars
+
+# Miscellaneous
+*repomix*

@@ -1,0 +1,186 @@
+button {
+  font-family: "Playwrite DE Grund", cursive;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
+  border-radius: 10px;
+  border: 2px solid #3d4749;
+  padding: 5px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px 0 rgba(61, 71, 73, 0.18), 0 1.5px 0 0 #2a2f30;
+  transition: box-shadow 0.18s cubic-bezier(0.4, 0, 0.2, 1), transform 0.12s;
+}
+
+button:hover:not(:disabled) {
+  /* Slightly lift the button and intensify shadow */
+  box-shadow: 0 8px 24px 0 rgba(61, 71, 73, 0.28), 0 2px 0 0 #2a2f30;
+  transform: translateY(-1px) scale(1.01);
+}
+
+button:active:not(:disabled) {
+  /* Pressed-in effect */
+  box-shadow: 0 2px 6px 0 rgba(61, 71, 73, 0.12), 0 0.5px 0 0 #2a2f30;
+  transform: translateY(0.5px) scale(0.99);
+}
+
+button:disabled {
+  cursor: default;
+  box-shadow: none;
+  opacity: 0.7;
+}
+
+input {
+  font-family: "Playwrite DE Grund", cursive;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
+  border-radius: 10px;
+  border: 2px solid #3d4749;
+  padding: 5px;
+  /* Make input visually similar to select/button */
+  box-shadow: 0 4px 12px 0 rgba(61, 71, 73, 0.18), 0 1.5px 0 0 #2a2f30;
+  transition: box-shadow 0.18s cubic-bezier(0.4, 0, 0.2, 1), transform 0.12s;
+  outline: none;
+}
+
+input:focus {
+  box-shadow: 0 8px 24px 0 rgba(61, 71, 73, 0.28), 0 2px 0 0 #2a2f30;
+}
+
+input:hover:not(:disabled) {
+  box-shadow: 0 8px 24px 0 rgba(61, 71, 73, 0.28), 0 2px 0 0 #2a2f30;
+  transform: translateY(-1px) scale(1.01);
+}
+
+input:active:not(:disabled) {
+  box-shadow: 0 2px 6px 0 rgba(61, 71, 73, 0.12), 0 0.5px 0 0 #2a2f30;
+  transform: translateY(0.5px) scale(0.99);
+}
+
+input:disabled {
+  cursor: default;
+  box-shadow: none;
+  opacity: 0.7;
+}
+
+select {
+  font-family: "Playwrite DE Grund", cursive;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
+  border-radius: 10px;
+  border: 2px solid #3d4749;
+  padding: 5px;
+  background-color: #fff;
+  color: inherit;
+  box-shadow: 0 4px 12px 0 rgba(61, 71, 73, 0.18), 0 1.5px 0 0 #2a2f30;
+  transition: box-shadow 0.18s cubic-bezier(0.4, 0, 0.2, 1), transform 0.12s;
+  outline: none;
+  cursor: pointer;
+}
+
+select:focus {
+  box-shadow: 0 8px 24px 0 rgba(61, 71, 73, 0.28), 0 2px 0 0 #2a2f30;
+}
+
+select:hover:not(:disabled) {
+  box-shadow: 0 8px 24px 0 rgba(61, 71, 73, 0.28), 0 2px 0 0 #2a2f30;
+  transform: translateY(-1px) scale(1.01);
+}
+
+select:active:not(:disabled) {
+  box-shadow: 0 2px 6px 0 rgba(61, 71, 73, 0.12), 0 0.5px 0 0 #2a2f30;
+  transform: translateY(0.5px) scale(0.99);
+}
+
+select:disabled {
+  cursor: default;
+  box-shadow: none;
+  opacity: 0.7;
+}
+
+option {
+  /* Note: Most browsers ignore cursor styles on <option> elements for security/accessibility reasons.
+     The pointer cursor will only show on the <select> dropdown itself, not on the options list. */
+  cursor: pointer;
+}
+
+.hand-card {
+  font-family: "Playwrite DE Grund", cursive;
+  border-radius: 10px;
+  border: 2px solid #3d4749;
+  box-shadow: 0 4px 12px 0 rgba(61, 71, 73, 0.18), 0 1.5px 0 0 #2a2f30;
+  transition: box-shadow 0.18s cubic-bezier(0.4, 0, 0.2, 1), transform 0.12s, border 0.12s;
+  cursor: pointer;
+  background-color: var(--container);
+  overflow: visible;
+}
+
+.hand-card.selected {
+  border: 5px solid #3d4749; /* Warm earth tone from original list */
+  box-shadow: 0 0 0 2px rgba(163, 139, 103, 0.12), 0 8px 24px 0 rgba(61, 71, 73, 0.18), 0 2px 0 0 #2a2f30;
+  background-color: #F6E5C5; /* Soft neutral from original list */
+  /* Add a subtle pulse animation for extra feedback */
+  animation: hand-card-selected-pulse 0.7s;
+}
+
+@keyframes hand-card-selected-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(163, 139, 103, 0.18), 0 8px 24px 0 rgba(61, 71, 73, 0.18), 0 2px 0 0 #2a2f30;
+  }
+  70% {
+    box-shadow: 0 0 0 6px rgba(163, 139, 103, 0.10), 0 8px 24px 0 rgba(61, 71, 73, 0.18), 0 2px 0 0 #2a2f30;
+  }
+  100% {
+    box-shadow: 0 0 0 2px rgba(163, 139, 103, 0.12), 0 8px 24px 0 rgba(61, 71, 73, 0.18), 0 2px 0 0 #2a2f30;
+  }
+}
+
+.hand-card:not(.disabled):hover {
+  box-shadow: 0 8px 24px 0 rgba(61, 71, 73, 0.28), 0 2px 0 0 #2a2f30;
+  transform: translateY(-1px) scale(1.01);
+}
+
+.hand-card:not(.disabled):active {
+  box-shadow: 0 2px 6px 0 rgba(61, 71, 73, 0.12), 0 0.5px 0 0 #2a2f30;
+  transform: translateY(0.5px) scale(0.99);
+}
+
+.hand-card.disabled {
+  cursor: default;
+  box-shadow: none;
+  opacity: 0.55;
+}
+
+.accumulator-card {
+  font-family: "Playwrite DE Grund", cursive;
+  border-radius: 10px;
+  border: 2px solid #3d4749;
+  box-shadow: 0 4px 12px 0 rgba(61, 71, 73, 0.18), 0 1.5px 0 0 #2a2f30;
+  transition: box-shadow 0.18s cubic-bezier(0.4, 0, 0.2, 1), transform 0.12s, border 0.12s;
+  background-color: var(--container);
+  cursor: default;
+}
+
+.accumulator-card.clickable {
+  cursor: pointer;
+}
+
+.accumulator-card.clickable:hover {
+  box-shadow: 0 8px 24px 0 rgba(61, 71, 73, 0.28), 0 2px 0 0 #2a2f30;
+  transform: translateY(-1px) scale(1.01);
+}
+
+.accumulator-card.clickable:active {
+  box-shadow: 0 2px 6px 0 rgba(61, 71, 73, 0.12), 0 0.5px 0 0 #2a2f30;
+  transform: translateY(0.5px) scale(0.99);
+}
+
+/* Optional: subtle highlight when selected, if needed in the future */
+/* 
+.accumulator-card.selected {
+  border: 5px solid #3d4749;
+  background-color: #F6E5C5;
+  animation: hand-card-selected-pulse 0.7s;
+}
+*/
