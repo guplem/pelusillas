@@ -1,8 +1,6 @@
+Analyze the codebase: inspect the game rules (readme.md and other markdown files), project structure and core modules to understand component interactions and business logic. Also study the coding style, locate and review implementations and shared utilities; reuse components and decide whether to use, extend, or create new ones while keeping consistency with conventions; then plan an implementation that follows existing patterns and reuses components.
 
-
----
-
-Fix the following issues:
+Then, fix the following issues:
 
 1. Before finishing the match, after obtaining the last card, the user should still have the option to either steal or not the last card. So the "end of game screen" should not be visible straight away.
 
