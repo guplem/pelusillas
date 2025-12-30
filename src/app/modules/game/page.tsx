@@ -10,7 +10,7 @@ import PlayerPage from '@/app/modules/player/page';
 import { RoomStore, RoomStoreType } from '@/app/modules/room/store';
 import { UserStore, UserStoreType } from '@/app/modules/user/store';
 import { useSyncState } from '@robojs/sync';
-import { JSX, useEffect } from 'react';
+import { JSX, useEffect, useMemo, useState } from 'react';
 
 export default function GamePage(): JSX.Element {
 	const { room }: RoomStoreType = RoomStore();
@@ -18,6 +18,36 @@ export default function GamePage(): JSX.Element {
 
 	const [players, setPlayers] = useSyncState<Player[]>([], [room, 'players']);
 	const [game, setGame] = useSyncState<Game | null>(null, [room, 'game']);
+
+	// For local multiplayer: track which human player is currently selected for viewing
+	const [selectedPlayerIndex, setSelectedPlayerIndex] = useState<number>(0);
+
+	// Get all human players owned by the current user
+	const ownedHumanPlayers: Player[] = useMemo(
+		(): Player[] => players.filter((p: Player) => p.owner === userId && !p.aiStrategy),
+		[players, userId],
+	);
+
+	// Determine which player to show controls for
+	const activePlayerId: string = useMemo((): string => {
+		if (ownedHumanPlayers.length === 0) {
+			return 'not-found';
+		}
+
+		// If current turn is one of our players, show that player
+		if (game) {
+			const currentPlayer: Player | undefined = ownedHumanPlayers.find(
+				(p: Player) => p.id === getCurrentPlayer(game).id,
+			);
+			if (currentPlayer) {
+				return currentPlayer.id;
+			}
+		}
+
+		// Otherwise show the selected player (for viewing their stats)
+		const safeIndex: number = Math.min(selectedPlayerIndex, ownedHumanPlayers.length - 1);
+		return ownedHumanPlayers[safeIndex]?.id || 'not-found';
+	}, [ownedHumanPlayers, game, selectedPlayerIndex]);
 
 	useEffect((): void => {
 		// This effect is the trigger for AI players.
@@ -59,10 +89,10 @@ export default function GamePage(): JSX.Element {
 							<GameOverPage />
 						) : (
 							<GameBoardPage
-								userPlayerId={
-									players.find((player: Player) => player.owner === userId && !player.aiStrategy)
-										?.id || 'not-found'
-								}
+								userPlayerId={activePlayerId}
+								ownedPlayerCount={ownedHumanPlayers.length}
+								onSelectPlayer={(index: number): void => setSelectedPlayerIndex(index)}
+								ownedPlayers={ownedHumanPlayers}
 							/>
 						)
 					) : (

@@ -10,11 +10,22 @@ import { RoomStore, RoomStoreType } from '@/app/modules/room/store';
 import { JSX, MouseEvent } from 'react';
 
 interface BoardPageParams {
-	/** The id for the player that the user is controlling */
+	/** The id for the player that the user is currently viewing/controlling */
 	userPlayerId: string;
+	/** Number of human players owned by the current user (for local multiplayer) */
+	ownedPlayerCount: number;
+	/** Callback to select a different player to view */
+	onSelectPlayer: (_index: number) => void;
+	/** All human players owned by this user */
+	ownedPlayers: Player[];
 }
 
-export default function GameBoardPage({ userPlayerId }: BoardPageParams): JSX.Element {
+export default function GameBoardPage({
+	userPlayerId,
+	ownedPlayerCount,
+	onSelectPlayer,
+	ownedPlayers,
+}: BoardPageParams): JSX.Element {
 	const { leave }: RoomStoreType = RoomStore();
 
 	return (
@@ -105,6 +116,58 @@ export default function GameBoardPage({ userPlayerId }: BoardPageParams): JSX.El
 
 											{userGamePlayer && (
 												<>
+													{/* Local Multiplayer: Player Selector */}
+													{ownedPlayerCount > 1 && (
+														<div
+															style={{
+																display: 'flex',
+																flexDirection: 'column',
+																alignItems: 'center',
+																gap: '5px',
+																padding: '10px',
+																backgroundColor: 'rgba(0,0,0,0.1)',
+																borderRadius: '8px',
+															}}
+														>
+															<div style={{ fontSize: '0.85rem', fontWeight: 'bold' }}>
+																Local Players ({ownedPlayerCount})
+															</div>
+															<div
+																style={{
+																	display: 'flex',
+																	gap: '5px',
+																	flexWrap: 'wrap',
+																	justifyContent: 'center',
+																}}
+															>
+																{ownedPlayers.map(
+																	(p: Player, idx: number): JSX.Element => (
+																		<button
+																			key={p.id}
+																			onClick={(): void => onSelectPlayer(idx)}
+																			style={{
+																				backgroundColor:
+																					p.id === userPlayerId ? p.color : 'rgba(255,255,255,0.3)',
+																				border:
+																					p.id === userPlayerId
+																						? '2px solid white'
+																						: '1px solid rgba(0,0,0,0.2)',
+																				borderRadius: '4px',
+																				padding: '4px 8px',
+																				fontSize: '0.8rem',
+																				cursor: 'pointer',
+																				fontWeight: p.id === userPlayerId ? 'bold' : 'normal',
+																			}}
+																		>
+																			{p.name}
+																			{p.id === currentPlayerId && ' 🎯'}
+																		</button>
+																	),
+																)}
+															</div>
+														</div>
+													)}
+
 													{/* Player Stats */}
 													<div
 														style={{

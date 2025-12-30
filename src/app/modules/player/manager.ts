@@ -18,33 +18,22 @@ export const userOwnsNonBotPlayer = (players: Player[], userId: string): boolean
 };
 
 /**
- * Validates if a player can be added based on ownership rules.
+ * Validates if a player can be added.
  *
- * Business rule: A single user can only own one non-AI (human) player at a time, but can create any number of AI players.
+ * Supports local multiplayer: A single user can own multiple human players on the same device.
  *
- * @param existingPlayers - The current list of players in the room.
- * @param newPlayer - The player to be added.
+ * @param _existingPlayers - The current list of players in the room.
+ * @param _newPlayer - The player to be added.
  * @returns {{ isValid: boolean; error?: string }}
  *   - `isValid`: True if the player can be added, false otherwise.
  *   - `error`: Optional error message if the addition is invalid.
  */
 export const validatePlayerAddition = (
-	existingPlayers: Player[],
-	newPlayer: Player,
+	_existingPlayers: Player[],
+	_newPlayer: Player,
 ): { isValid: boolean; error?: string } => {
-	// Allow adding bot players without restriction
-	if (newPlayer.aiStrategy) {
-		return { isValid: true };
-	}
-
-	// Check if user already owns a non-bot player
-	if (userOwnsNonBotPlayer(existingPlayers, newPlayer.owner)) {
-		return {
-			isValid: false,
-			error: 'User can only own one non-bot player at a time',
-		};
-	}
-
+	// Allow adding any players - supports local multiplayer where
+	// one user can control multiple human players on the same device
 	return { isValid: true };
 };
 

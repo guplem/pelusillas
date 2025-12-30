@@ -395,13 +395,8 @@ const executeSteal = (game: Game, playerId: string): Game | null => {
 
 	console.log(`Player ${playerId} stole ${stolenCardsCount} cards of value ${cardValue}.`);
 
-	// Check for bust after stealing (might now have 3+ of the same value)
-	const cardCount: number = player.faceUpCards.filter((c) => c === cardValue).length;
-	if (cardCount >= 3) {
-		// Clear pending decision before handling bust
-		game.pendingStealDecision = undefined;
-		return handleBust(game, player, playerId, cardValue);
-	}
+	// Note: Stealing does NOT cause a bust, even if you end up with 3+ of the same value.
+	// Only drawing from the deck can cause a bust.
 
 	// Clear pending decision
 	game.pendingStealDecision = undefined;

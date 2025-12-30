@@ -26,7 +26,7 @@
 		"build": "robo build",
 		"deploy": "robo deploy",
 		"dev": "robo dev",
-		"dev:tunnel": "robox dev --tunnel",
+		"dev:tunnel": "robo dev --tunnel",
 		"doctor": "sage doctor",
 		"invite": "robo invite",
 		"lint": "npm run lint:eslint && npm run lint:style",
