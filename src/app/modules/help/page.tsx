@@ -108,12 +108,13 @@ export default function HelpPage(): JSX.Element {
 				<ul>
 					<li>Draw the top card from the deck and add it face-up in front of you.</li>
 					<li>
-						<strong>Bust Rule:</strong> If you have 3 or more of the same value face-up, you BUST!
-						All your face-up cards go to the discard pile.
+						<strong>Bust Rule:</strong> If you have 3 or more cards and draw a duplicate (a card
+						matching a value you already have), you BUST! All your face-up cards go to the discard
+						pile.
 					</li>
 					<li>
-						<strong>Note:</strong> Having pairs (2 cards of the same value) is safe. You only bust
-						when you get 3+ of the same value.
+						<strong>Note:</strong> Pairs are safe as long as you have fewer than 3 total cards. Once
+						you have 3+ cards, any duplicate draw will bust you!
 					</li>
 				</ul>
 
@@ -128,8 +129,8 @@ export default function HelpPage(): JSX.Element {
 						<strong>Don&apos;t Steal</strong> (keep only the card you drew).
 					</li>
 					<li>
-						<strong>Important:</strong> Stealing may cause you to bust if you end up with 3+ of the
-						same value!
+						<strong>Important:</strong> Stealing does NOT cause a bust! Only drawing from the deck
+						can bust you.
 					</li>
 				</ul>
 
@@ -147,15 +148,18 @@ export default function HelpPage(): JSX.Element {
 				</ul>
 
 				<h2> Bust!</h2>
-				<p>You bust when you have 3 or more cards of the same value face-up. When you bust:</p>
+				<p>
+					You bust when you have 3 or more cards and draw a duplicate (a card matching a value you
+					already have). When you bust:
+				</p>
 				<ul>
 					<li>All your face-up cards go to the discard pile</li>
 					<li>You score nothing this turn</li>
 					<li>Your turn ends immediately</li>
 				</ul>
 				<p>
-					<strong>Note:</strong> Having pairs (2 cards with the same value) is safe! You only bust
-					when you have 3+ of the same value.
+					<strong>Note:</strong> Pairs are safe when you have fewer than 3 cards! Once you have 3+
+					cards, drawing any duplicate will bust you.
 				</p>
 
 				<h2> Scoring</h2>
@@ -182,19 +186,19 @@ export default function HelpPage(): JSX.Element {
 				<ul>
 					<li>
 						<strong>Risk Management:</strong> The more face-up cards you have, the higher your
-						chance of busting. Know when to stop!
+						chance of busting. Once you have 3+ cards, any duplicate draw will bust you!
 					</li>
 					<li>
 						<strong>Card Counting:</strong> Pay attention to what values have been played. Higher
 						values are rarer and safer to collect.
 					</li>
 					<li>
-						<strong>Steal Wisely:</strong> When offered a steal opportunity, consider if taking
-						those cards will put you at risk of busting (3+ of the same value).
+						<strong>Steal Freely:</strong> Stealing doesn&apos;t cause busts, so take those cards
+						when offered!
 					</li>
 					<li>
-						<strong>Pairs are Safe:</strong> You can safely have 2 cards of the same value. Only 3+
-						of the same value causes a bust.
+						<strong>Early Pairs are Safe:</strong> Your first two cards can be a pair safely. The
+						risk only starts after your 3rd card.
 					</li>
 				</ul>
 			</div>

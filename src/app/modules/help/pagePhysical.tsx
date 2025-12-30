@@ -64,12 +64,12 @@ export default function HelpPagePhysical(): JSX.Element {
 				<ul>
 					<li>Draw the top card from the deck and place it face-up in front of you.</li>
 					<li>
-						<strong>Bust Rule:</strong> If you have 3 or more cards of the same value face-up, you
-						BUST.
+						<strong>Bust Rule:</strong> If you have 3 or more cards and draw a duplicate (a card
+						matching a value you already have), you BUST.
 					</li>
 					<li>When you bust, all face-up cards go to the discard pile.</li>
 					<li>
-						<strong>Note:</strong> Having pairs (2 cards of the same value) is safe!
+						<strong>Note:</strong> Pairs are safe when you have fewer than 3 cards!
 					</li>
 				</ul>
 
@@ -81,8 +81,8 @@ export default function HelpPagePhysical(): JSX.Element {
 					</li>
 					<li>If so, you may choose to steal all matching cards from opponents.</li>
 					<li>
-						<strong>Important:</strong> Stealing may cause you to bust if you end up with 3+ of the
-						same value!
+						<strong>Important:</strong> Stealing does NOT cause a bust! Only drawing from the deck
+						can bust you.
 					</li>
 				</ul>
 
@@ -132,7 +132,9 @@ export default function HelpPagePhysical(): JSX.Element {
 						</tr>
 						<tr>
 							<td style={{ padding: '8px' }}>Bust</td>
-							<td style={{ padding: '8px' }}>3+ of same value = lose all face-up cards</td>
+							<td style={{ padding: '8px' }}>
+								3+ cards + drawing a duplicate = lose all face-up cards
+							</td>
 						</tr>
 					</tbody>
 				</table>

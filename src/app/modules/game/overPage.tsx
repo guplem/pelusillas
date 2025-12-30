@@ -13,6 +13,15 @@ interface PlayerScoreData {
 	totalCards: number;
 }
 
+/**
+ * Calculates the expected total points in the deck.
+ * Values 1-5: 13 cards each = (1+2+3+4+5) × 13 = 195
+ * Values 6-10: 9 cards each = (6+7+8+9+10) × 9 = 360
+ * Total: 555 points
+ */
+const EXPECTED_TOTAL_POINTS: number = 555;
+const EXPECTED_TOTAL_CARDS: number = 110;
+
 export default function GameOverPage(): JSX.Element {
 	return (
 		<GameContext.Consumer>
@@ -57,6 +66,19 @@ export default function GameOverPage(): JSX.Element {
 								if (b.score !== a.score) return b.score - a.score;
 								return b.uniqueValues - a.uniqueValues;
 							});
+
+							// Calculate points accounting
+							const totalScoredPoints: number = playerScores.reduce((sum, ps) => sum + ps.score, 0);
+							const totalScoredCards: number = playerScores.reduce(
+								(sum, ps) => sum + ps.totalCards,
+								0,
+							);
+							const discardedPoints: number = calculateScore(game.discardPile);
+							const discardedCards: number = game.discardPile.length;
+							const accountedPoints: number = totalScoredPoints + discardedPoints;
+							const accountedCards: number = totalScoredCards + discardedCards;
+							const pointsMatch: boolean = accountedPoints === EXPECTED_TOTAL_POINTS;
+							const cardsMatch: boolean = accountedCards === EXPECTED_TOTAL_CARDS;
 
 							let winnerMessage: string = 'Game ended in a tie!';
 							let winnerScore: number = 0;
@@ -180,6 +202,61 @@ export default function GameOverPage(): JSX.Element {
 												}}
 											>
 												Tiebreaker: Most unique card values wins
+											</div>
+										</div>
+
+										{/* Points Accounting Summary */}
+										<div
+											style={{
+												width: '100%',
+												padding: '15px',
+												backgroundColor:
+													pointsMatch && cardsMatch
+														? 'rgba(40, 167, 69, 0.1)'
+														: 'rgba(220, 53, 69, 0.1)',
+												border: `1px solid ${pointsMatch && cardsMatch ? '#28a745' : '#dc3545'}`,
+												borderRadius: '8px',
+											}}
+										>
+											<h4 style={{ margin: '0 0 10px 0', textAlign: 'center' }}>
+												{pointsMatch && cardsMatch ? '✅' : '⚠️'} Points Accounting
+											</h4>
+											<div
+												style={{
+													display: 'flex',
+													justifyContent: 'space-around',
+													flexWrap: 'wrap',
+													gap: '10px',
+												}}
+											>
+												<div style={{ textAlign: 'center' }}>
+													<div style={{ fontWeight: 'bold' }}>{totalScoredPoints}</div>
+													<div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+														Scored Points
+													</div>
+												</div>
+												<div style={{ textAlign: 'center' }}>
+													<div style={{ fontWeight: 'bold' }}>{discardedPoints}</div>
+													<div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+														Discarded Points
+													</div>
+												</div>
+												<div style={{ textAlign: 'center' }}>
+													<div style={{ fontWeight: 'bold' }}>
+														{accountedPoints} / {EXPECTED_TOTAL_POINTS}
+													</div>
+													<div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+														Total Points
+													</div>
+												</div>
+												<div style={{ textAlign: 'center' }}>
+													<div style={{ fontWeight: 'bold' }}>
+														{accountedCards} / {EXPECTED_TOTAL_CARDS}
+													</div>
+													<div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+														Total Cards
+													</div>
+												</div>
 											</div>
 										</div>
 

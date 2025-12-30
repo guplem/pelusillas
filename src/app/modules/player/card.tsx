@@ -24,7 +24,9 @@ export default function PlayerCard({
 	// Determine if there's content to show in the hover section
 	const hasHoverContent: boolean =
 		!!player.aiStrategy || (showOwnedIndicator && isPlayerOwned(player));
-	const showHover: boolean = !gamePlayer || (isHovered && hasHoverContent);
+	// Only show hover info when hovered and there's content to show
+	// (removed the !gamePlayer condition that was hiding the name on player selection screen)
+	const showHover: boolean = isHovered && hasHoverContent;
 
 	return (
 		<div

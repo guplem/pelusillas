@@ -274,8 +274,12 @@ const draw = (game: Game, playerId: string): Game | null => {
 		data: drawHistoryEntry,
 	});
 
-	// Check for bust condition: player now has 3+ cards of the same value
-	const isBust: boolean = existingCount >= 2;
+	// Check for bust condition: drawing a duplicate when you have 3+ cards total
+	// - existingCount >= 1: the drawn card is a duplicate (player already had at least one)
+	// - player.faceUpCards.length >= 3: player now has 3 or more cards (including the one just drawn)
+	const isDuplicate: boolean = existingCount >= 1;
+	const hasThreeOrMoreCards: boolean = player.faceUpCards.length >= 3;
+	const isBust: boolean = isDuplicate && hasThreeOrMoreCards;
 
 	if (isBust) {
 		return handleBust(game, player, playerId, drawnCard);
