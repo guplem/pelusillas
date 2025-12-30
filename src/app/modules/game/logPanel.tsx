@@ -173,7 +173,7 @@ export const GameLogPanel: React.FC<GameLogProps> = ({
 								action: undefined,
 								player: playerInfo.name,
 								playerColor: playerInfo.color,
-								details: `BUST! Drew a duplicate ${data.duplicateValue} with ${data.cardsLost}+ cards and lost them all`,
+								details: `BUST! Drew a duplicate ${data.duplicateValue} with ${data.cardsLost} cards and lost them all`,
 								icon: '💥',
 								isBust: true,
 							};

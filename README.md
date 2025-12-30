@@ -32,7 +32,7 @@ That''s it!
 - **Goal**: Collect the most points by banking cards to your score pile.
 - **Setup**: 110 cards (values 1-10: 13 each of 1-5, 9 each of 6-10).
 - **Gameplay**: On your turn, draw cards face-up. You must draw at least 3 cards before you can stop.
-- **Bust**: Draw a duplicate when you have 3+ cards and lose everything!
+- **Bust**: Draw a duplicate when you have 3 or more cards and lose everything!
 - **Stealing**: When you draw a card, you can choose to steal matching cards from opponents (doesn't cause bust).
 
 ** Full Rules**:
@@ -99,8 +99,8 @@ The game is **event-driven**, reacting to changes in the shared `game` state.
 #### Human Player''s Turn
 
 1. **Banking Phase**: Cards from the previous turn are automatically banked.
-2. **Action Phase**: Draw from deck, optionally steal matching cards from opponents, or stop (after 3+ cards).
-3. **Bust Check**: Drawing a duplicate when you have 3+ cards causes a bust.
+2. **Action Phase**: Draw from deck, optionally steal matching cards from opponents, or stop (after 3 or more cards).
+3. **Bust Check**: Drawing a duplicate when you have 3 or more cards causes a bust.
 
 #### AI Player''s Turn
 

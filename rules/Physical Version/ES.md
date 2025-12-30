@@ -12,7 +12,7 @@ Juega con 110 cartas numeradas del 1 al 10:
 
 ##  Objetivo
 
-Conseguir la **mayor puntuación** recolectando cartas en tu pila de puntos mientras evitas **reventar** (sacar un duplicado cuando tienes 3+ cartas).
+Conseguir la **mayor puntuación** recolectando cartas en tu pila de puntos mientras evitas **reventar** (sacar un duplicado cuando tienes 3 o más cartas).
 
 ---
 
@@ -40,7 +40,7 @@ Roba cartas boca arriba. **Debes robar al menos 3 cartas** antes de poder parar.
 
 ### Robar
 - Toma la carta superior del mazo y colócala **boca arriba** frente a ti.
-- **Regla de Reventar**: Si tienes **3+ cartas** y sacas un **duplicado** (una carta con un valor que ya tienes), REVIENTAS.
+- **Regla de Reventar**: Si tienes **3 o más cartas** y sacas un **duplicado** (una carta con un valor que ya tienes), REVIENTAS.
 - Cuando revientas, **todas las cartas boca arriba van a la pila de descarte**.
 - **Nota**: ¡Las parejas son seguras siempre que tengas menos de 3 cartas, O si no sacas otro duplicado!
 
@@ -75,5 +75,5 @@ El juego termina cuando el **mazo se vacía**. Completa el turno actual, luego t
 |--------|--------|
 | Robar | Toma carta superior del mazo, colócala boca arriba |
 | Robar de Otros | Toma cartas coincidentes de oponentes (opcional al robar) |
-| Parar | Termina turno (después de 3+ cartas), banca cartas siguiente turno |
-| Reventar | 3+ cartas + sacar duplicado = pierdes todas las cartas boca arriba |
+| Parar | Termina turno (después de 3 o más cartas), banca cartas siguiente turno |
+| Reventar | 3 o más cartas + sacar duplicado = pierdes todas las cartas boca arriba |

@@ -69,7 +69,8 @@ export default function HelpPagePhysical(): JSX.Element {
 					</li>
 					<li>When you bust, all face-up cards go to the discard pile.</li>
 					<li>
-						<strong>Note:</strong> Pairs are safe when you have fewer than 3 cards!
+						<strong>Note:</strong> Pairs are safe when you have fewer than 3 cards! With three or
+						more they will cause a bust.
 					</li>
 				</ul>
 
@@ -133,7 +134,7 @@ export default function HelpPagePhysical(): JSX.Element {
 						<tr>
 							<td style={{ padding: '8px' }}>Bust</td>
 							<td style={{ padding: '8px' }}>
-								3+ cards + drawing a duplicate = lose all face-up cards
+								3 cards + drawing a duplicate = lose all face-up cards
 							</td>
 						</tr>
 					</tbody>

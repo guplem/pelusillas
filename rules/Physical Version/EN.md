@@ -12,7 +12,7 @@ Play with 110 cards numbered 1-10:
 
 ##  Objective
 
-Score the **most points** by collecting cards into your score pile while avoiding **busting** (drawing a duplicate when you have 3+ cards).
+Score the **most points** by collecting cards into your score pile while avoiding **busting** (drawing a duplicate when you have 3 or more cards).
 
 ---
 
@@ -40,7 +40,7 @@ Draw cards face-up. You **must draw at least 3 cards** before you can stop. Then
 
 ### Draw
 - Take the top card from the deck and place it **face-up** in front of you.
-- **Bust Rule**: If you have **3+ cards** and draw a **duplicate** (a card matching a value you already have), you BUST.
+- **Bust Rule**: If you have **3 or more cards** and draw a **duplicate** (a card matching a value you already have), you BUST.
 - When you bust, **all face-up cards go to the discard pile**.
 - **Note**: Pairs are safe as long as you have fewer than 3 total cards, OR if you don't draw another duplicate!
 
@@ -75,5 +75,5 @@ The game ends when the **draw pile is empty**. Complete the current turn, then a
 |--------|--------|
 | Draw | Take top card from deck, place face-up |
 | Steal | Take matching cards from opponents (optional after drawing) |
-| Stop | End turn (after 3+ cards), bank face-up cards next turn |
-| Bust | 3+ cards + drawing a duplicate = lose all face-up cards |
+| Stop | End turn (after 3 or more cards), bank face-up cards next turn |
+| Bust | 3 or more cards + drawing a duplicate = lose all face-up cards |

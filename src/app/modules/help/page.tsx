@@ -114,7 +114,7 @@ export default function HelpPage(): JSX.Element {
 					</li>
 					<li>
 						<strong>Note:</strong> Pairs are safe as long as you have fewer than 3 total cards. Once
-						you have 3+ cards, any duplicate draw will bust you!
+						you have 3 cards, any next duplicate draw will bust you!
 					</li>
 				</ul>
 
@@ -158,8 +158,8 @@ export default function HelpPage(): JSX.Element {
 					<li>Your turn ends immediately</li>
 				</ul>
 				<p>
-					<strong>Note:</strong> Pairs are safe when you have fewer than 3 cards! Once you have 3+
-					cards, drawing any duplicate will bust you.
+					<strong>Note:</strong> Pairs are safe when you have fewer than 3 cards! Once you have 3 or
+					more cards, drawing any duplicate will bust you.
 				</p>
 
 				<h2> Scoring</h2>
@@ -186,7 +186,7 @@ export default function HelpPage(): JSX.Element {
 				<ul>
 					<li>
 						<strong>Risk Management:</strong> The more face-up cards you have, the higher your
-						chance of busting. Once you have 3+ cards, any duplicate draw will bust you!
+						chance of busting. Once you have 3 or more cards, any duplicate draw will bust you!
 					</li>
 					<li>
 						<strong>Card Counting:</strong> Pay attention to what values have been played. Higher
