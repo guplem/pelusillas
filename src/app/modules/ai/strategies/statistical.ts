@@ -21,6 +21,10 @@ export const statisticalStrategy = (gameScenario: Scenario): ActionConfig => {
 	}
 
 	const myFaceUp: number[] = myBoard.faceUpCards;
+	// Ensure we draw at least once when we have no face-up cards and there's no pending steal
+	if (myFaceUp.length === 0 && !gameScenario.pendingStealDecision) {
+		return { action: ActionTypes.Draw, params: {} };
+	}
 	const sumFaceUp: number = myFaceUp.reduce((s: number, v: number) => s + v, 0);
 	const myFaceUpCounts: Record<number, number> = {};
 	for (const c of myFaceUp) myFaceUpCounts[c] = (myFaceUpCounts[c] || 0) + 1;

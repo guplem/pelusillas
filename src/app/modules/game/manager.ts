@@ -70,7 +70,9 @@ const checkGameEnd = (game: Game): Game => {
 
 	// If deck is empty but there is a pending steal decision, delay finalizing the game
 	if (game.pendingStealDecision) {
-		console.log('Deck empty but pending steal decision exists; delaying end of game until steal/skip is resolved.');
+		console.log(
+			'Deck empty but pending steal decision exists; delaying end of game until steal/skip is resolved.',
+		);
 		return game;
 	}
 
@@ -149,10 +151,13 @@ const getNextGameState = (
 		// but only when a pending steal decision exists and the action is steal/skipSteal for the current player.
 		if (
 			game.pendingStealDecision &&
-			(actionConfig.action === ActionTypes.Steal || actionConfig.action === ActionTypes.SkipSteal) &&
+			(actionConfig.action === ActionTypes.Steal ||
+				actionConfig.action === ActionTypes.SkipSteal) &&
 			getCurrentPlayer(game).id === playerId
 		) {
-			console.log('Allowing final steal/skipSteal action despite winnerId being set because pendingStealDecision exists.');
+			console.log(
+				'Allowing final steal/skipSteal action despite winnerId being set because pendingStealDecision exists.',
+			);
 			// proceed
 		} else {
 			console.error('Game has already ended, cannot execute actions');

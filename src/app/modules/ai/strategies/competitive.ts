@@ -16,6 +16,10 @@ export const competitiveStrategy = (gameScenario: Scenario): ActionConfig => {
 	}
 
 	const myFaceUp: number[] = myBoard.faceUpCards;
+	// Ensure we draw at least once when we have no face-up cards and there's no pending steal
+	if (myFaceUp.length === 0 && !gameScenario.pendingStealDecision) {
+		return { action: ActionTypes.Draw, params: {} };
+	}
 	// const myScore: number = myBoard.scorePile.reduce((a: number, b: number) => a + b, 0);
 	const deckSize: number = gameScenario.deckSize;
 

@@ -21,6 +21,14 @@ export const randomDrawStrategy = (gameScenario: Scenario): ActionConfig => {
 
 	const faceUpCount: number = currentPlayerBoard?.faceUpCards.length ?? 0;
 
+	// Ensure we never stop with zero cards — draw at least once.
+	if (faceUpCount === 0) {
+		return {
+			action: ActionTypes.Draw,
+			params: {},
+		};
+	}
+
 	// Always draw at least 3 cards before considering stopping
 	const MINIMUM_CARDS: number = 3;
 
