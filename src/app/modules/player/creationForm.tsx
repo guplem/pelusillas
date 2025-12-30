@@ -29,11 +29,15 @@ export default function PlayerCreationForm(): JSX.Element {
 			return;
 		}
 
-		const newPlayer: Player = createPlayer({
-			name: playerName.trim() || undefined,
-			color: playerColor.trim() || undefined,
-			aiStrategy: aiStrategy === 'human' ? null : aiStrategy,
-		});
+		// Pass existing players to prioritize unused colors
+		const newPlayer: Player = createPlayer(
+			{
+				name: playerName.trim() || undefined,
+				color: playerColor.trim() || undefined,
+				aiStrategy: aiStrategy === 'human' ? null : aiStrategy,
+			},
+			playerContext.players,
+		);
 
 		playerContext.addPlayer(newPlayer);
 

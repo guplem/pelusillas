@@ -7,11 +7,13 @@ import { UserStore } from '@/app/modules/user/store';
  * @param config - Configuration options for the player
  * @returns A new Player data object
  */
-export function createPlayer(config: PlayerConfig): Player {
+export function createPlayer(config: PlayerConfig, existingPlayers?: Player[]): Player {
+	// Gather taken colors if provided
+	const takenColors = existingPlayers?.map((p) => p.color).filter(Boolean) as string[] | undefined;
 	return {
 		id: config.id ?? crypto.randomUUID(),
 		name: config.name ?? getRandomName(),
-		color: config.color ?? getRandomColor(),
+		color: config.color ?? getRandomColor(takenColors),
 		aiStrategy: config.aiStrategy ?? null,
 		owner: config.owner ?? UserStore.getState().id!,
 	};

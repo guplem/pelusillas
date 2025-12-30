@@ -20,9 +20,17 @@ export function getRandomName(): string {
 }
 
 /**
- * Utility function to get a random predefined color.
- * @returns A random color from the predefined colors array
+ * Utility function to get a random predefined color, prioritizing unused colors.
+ * @param takenColors - Array of colors already taken by other players (optional)
+ * @returns A random color from the predefined colors array, prioritizing unused
  */
-export function getRandomColor(): string {
+export function getRandomColor(takenColors?: string[]): string {
+	const available = predefinedPlayerColors.filter(
+		(color) => !takenColors || !takenColors.includes(color),
+	);
+	if (available.length > 0) {
+		return available[Math.floor(Math.random() * available.length)];
+	}
+	// fallback: all are taken, pick any
 	return predefinedPlayerColors[Math.floor(Math.random() * predefinedPlayerColors.length)];
 }

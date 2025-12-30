@@ -1,5 +1,7 @@
 import { Scenario } from '@/app/modules/ai/model';
+import { competitiveStrategy } from '@/app/modules/ai/strategies/competitive';
 import { randomDrawStrategy } from '@/app/modules/ai/strategies/random';
+import { statisticalStrategy } from '@/app/modules/ai/strategies/statistical';
 import { ActionConfig } from '@/app/modules/game/model';
 
 /**
@@ -25,10 +27,24 @@ export const strategiesList: {
 	maxAttempts?: number;
 }[] = [
 	{
-		name: 'Random Bunny',
+		name: 'Random',
 		description:
 			'Randomly decides when to draw or stop. Gets riskier with fewer cards but tends to stop when it has collected a decent pile.',
 		getActionFunction: randomDrawStrategy,
+		maxAttempts: 10,
+	},
+	{
+		name: 'Competitive',
+		description:
+			'Plays to maximize score and minimize risk. Stops if bust is likely, draws more when safe, and always steals when possible. Mimics a strong human player.',
+		getActionFunction: competitiveStrategy,
+		maxAttempts: 10,
+	},
+	{
+		name: 'Statistical',
+		description:
+			'Uses visible board statistics and deck estimates to compute bust probability and expected value, then decides whether to draw or stop.',
+		getActionFunction: statisticalStrategy,
 		maxAttempts: 10,
 	},
 ];

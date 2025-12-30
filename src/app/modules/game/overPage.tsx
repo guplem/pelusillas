@@ -1,3 +1,4 @@
+import { GameLogPanel } from '@/app/modules/game/logPanel';
 import { GameContext, GameContextType } from '@/app/modules/game/manager';
 import { Game, GamePlayer } from '@/app/modules/game/model';
 import { calculateScore, getUniqueValues } from '@/app/modules/game/utils';
@@ -259,11 +260,16 @@ export default function GameOverPage(): JSX.Element {
 												</div>
 											</div>
 										</div>
-
+										{/* Closing Remarks */}
 										<p style={{ margin: 0 }}>Thank you for playing Pelusillas!</p>
 										<button onClick={(): void => gameProvider.finishGame()}>
 											Finish Game & Return to Lobby
 										</button>
+										{/* Game Log Panel */}
+										<div style={{ width: '100%', marginTop: '30px' }}>
+											<h3 style={{ textAlign: 'center', marginBottom: '10px' }}>Game Log</h3>
+											<GameLogPanel history={game.history} />
+										</div>
 									</div>
 								</div>
 							);

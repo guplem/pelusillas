@@ -136,8 +136,10 @@ export default function PlayerCard({
 							cursor: 'default',
 						}}
 					>
-						<h3 style={{ margin: 0 }}>{calculateScore(gamePlayer.scorePile)}</h3>
-						<div style={{ fontSize: '0.7rem' }}>pts</div>
+						<h3 style={{ margin: 0 }}>
+							{calculateScore([...gamePlayer.scorePile, ...gamePlayer.faceUpCards])}
+						</h3>
+						<div style={{ fontSize: '0.7rem' }}>potential</div>
 					</div>
 				)}
 			</div>

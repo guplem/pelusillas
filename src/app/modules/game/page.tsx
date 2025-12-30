@@ -84,8 +84,8 @@ export default function GamePage(): JSX.Element {
 					}}
 				>
 					{game ? (
-						// Check if game has ended (has a winnerId defined)
-						game.winnerId !== undefined ? (
+						// Show end screen only if game has a winner and no pending steal decision
+						game.winnerId !== undefined && !game.pendingStealDecision ? (
 							<GameOverPage />
 						) : (
 							<GameBoardPage
