@@ -32,7 +32,7 @@ Conseguir la **mayor puntuación** recolectando cartas en tu pila de puntos mien
 Mueve las cartas boca arriba de tu turno anterior a tu **pila de puntos** (puntos seguros).
 
 ### 2. Fase de Acción
-Roba cartas boca arriba. **Debes robar al menos una vez**. Luego continúa robando o para.
+Roba cartas boca arriba. **Debes robar al menos 3 cartas** antes de poder parar. Luego continúa robando o para.
 
 ---
 
@@ -40,16 +40,17 @@ Roba cartas boca arriba. **Debes robar al menos una vez**. Luego continúa roban
 
 ### Robar
 - Toma la carta superior del mazo y colócala **boca arriba** frente a ti.
-- **Regla de Reventar**: Si robas una carta que coincide con un valor que ya tienes boca arriba **Y** tienes **3+ cartas boca arriba en total**, REVIENTAS.
+- **Regla de Reventar**: Si tienes **3+ cartas del mismo valor** boca arriba, REVIENTAS.
 - Cuando revientas, **todas las cartas boca arriba van a la pila de descarte**.
+- **Nota**: ¡Tener parejas (2 cartas del mismo valor) es seguro!
 
-### Robar (Opcional)
-- Después de tus primeras 2 cartas, puedes robar de otro jugador en lugar del mazo.
-- Toma una de sus cartas boca arriba y añádela a tu área boca arriba.
-- Las mismas reglas de reventar aplican al robar.
+### Robar de Otros (Opcional)
+- Cuando robas una carta, comprueba si algún oponente tiene cartas boca arriba del mismo valor.
+- Si es así, puedes elegir robar todas las cartas coincidentes de los oponentes.
+- **Importante**: ¡Robar puede hacerte reventar si terminas con 3+ del mismo valor!
 
 ### Parar
-- Di "Paro" para terminar tu turno.
+- Di "Paro" para terminar tu turno (solo después de robar al menos 3 cartas).
 - Tus cartas boca arriba permanecen y serán bancadas al inicio de tu próximo turno.
 
 ---
@@ -73,6 +74,6 @@ El juego termina cuando el **mazo se vacía**. Completa el turno actual, luego t
 | Acción | Efecto |
 |--------|--------|
 | Robar | Toma carta superior del mazo, colócala boca arriba |
-| Robar de Otro | Toma carta boca arriba de oponente (después de 2 robos) |
-| Parar | Termina turno, guarda cartas boca arriba para bancar |
-| Reventar | Duplicado con 3+ cartas = pierdes todas las cartas boca arriba |
+| Robar de Otros | Toma cartas coincidentes de oponentes (opcional al robar) |
+| Parar | Termina turno (después de 3+ cartas), banca cartas siguiente turno |
+| Reventar | 3+ del mismo valor = pierdes todas las cartas boca arriba |

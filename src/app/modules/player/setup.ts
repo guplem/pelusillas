@@ -17,7 +17,19 @@ export function createPlayer(config: PlayerConfig): Player {
 	};
 }
 
-export const predefinedPlayerColors: string[] = ['#A38B67', '#f2a55f', '#85C6E0', '#7db593'];
+/**
+ * Predefined player colors based on the card color scheme.
+ * Uses a subset of the card colors for player identification.
+ * These are muted/adjusted versions to work well as background colors.
+ */
+export const predefinedPlayerColors: string[] = [
+	'#2980B9', // Muted Cyan (based on card 1: #3498DB)
+	'#7D3C98', // Muted Purple (based on card 2: #8E44AD)
+	'#C0392B', // Muted Red (based on card 3: #E74C3C)
+	'#117864', // Muted Teal (based on card 9: #16A085)
+	'#D68910', // Muted Orange (based on card 6: #F39C12)
+	'#2E4053', // Dark Blue-Grey (based on card 8: #3F51B5)
+];
 
 // ORIGINAL LIST
 // Warm earth tones (browns, oranges)

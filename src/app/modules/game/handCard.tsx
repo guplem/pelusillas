@@ -1,3 +1,4 @@
+import { getCardColor } from '@/app/modules/game/cardColors';
 import React, { JSX } from 'react';
 
 interface DustBunnyCardProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -17,6 +18,7 @@ export default function DustBunnyCard({
 	style,
 	...props
 }: DustBunnyCardProps): JSX.Element {
+	const cardColor: string = getCardColor(value);
 	const classNames: string = [
 		'dust-bunny-card',
 		isHighlighted ? 'highlighted' : '',
@@ -32,22 +34,33 @@ export default function DustBunnyCard({
 				aspectRatio: '1 / 1',
 				minWidth: '50px',
 				maxWidth: '80px',
-				backgroundColor: isHighlighted ? 'var(--highlight, #a8d5ba)' : 'var(--container)',
+				backgroundColor: cardColor,
 				display: 'flex',
 				flexDirection: 'column',
 				justifyContent: 'center',
 				alignItems: 'center',
 				textAlign: 'center',
 				borderRadius: '10px',
-				border: isHighlighted
-					? '2px solid var(--border-highlight, #4a9c6d)'
-					: '1px solid var(--border, #555)',
+				border: isHighlighted ? '3px solid white' : '2px solid rgba(0, 0, 0, 0.3)',
+				boxShadow: isHighlighted
+					? '0 0 10px rgba(255, 255, 255, 0.5)'
+					: '0 2px 4px rgba(0, 0, 0, 0.2)',
 				position: 'relative',
 				...style,
 			}}
 			{...props}
 		>
-			<h2 style={{ margin: 0, fontSize: '1.8rem' }}>{value}</h2>
+			<h2
+				style={{
+					margin: 0,
+					fontSize: '1.8rem',
+					color: 'white',
+					textShadow: '1px 1px 2px rgba(0, 0, 0, 0.5)',
+					fontWeight: 'bold',
+				}}
+			>
+				{value}
+			</h2>
 			{count > 1 && (
 				<div
 					style={{

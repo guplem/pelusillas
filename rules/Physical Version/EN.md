@@ -32,7 +32,7 @@ Score the **most points** by collecting cards into your score pile while avoidin
 Move any face-up cards from your previous turn to your **score pile** (safe points).
 
 ### 2. Action Phase
-Draw cards face-up. You **must draw at least once**. Then continue drawing or stop.
+Draw cards face-up. You **must draw at least 3 cards** before you can stop. Then continue drawing or stop.
 
 ---
 
@@ -40,16 +40,17 @@ Draw cards face-up. You **must draw at least once**. Then continue drawing or st
 
 ### Draw
 - Take the top card from the deck and place it **face-up** in front of you.
-- **Bust Rule**: If you draw a card matching a value you already have face-up **AND** you have **3+ total face-up cards**, you BUST.
+- **Bust Rule**: If you have **3+ cards of the same value** face-up, you BUST.
 - When you bust, **all face-up cards go to the discard pile**.
+- **Note**: Having pairs (2 cards of the same value) is safe!
 
 ### Steal (Optional)
-- After your first 2 cards, you may steal from another player instead of drawing.
-- Take one of their face-up cards and add it to your face-up area.
-- The same bust rules apply when stealing.
+- When you draw a card, check if any opponent has a face-up card matching the value you drew.
+- If so, you may choose to steal all matching cards from opponents.
+- **Important**: Stealing may cause you to bust if you end up with 3+ of the same value!
 
 ### Stop
-- Say "Stop" to end your turn.
+- Say "Stop" to end your turn (only after drawing at least 3 cards).
 - Your face-up cards remain and will be banked at the start of your next turn.
 
 ---
@@ -73,6 +74,6 @@ The game ends when the **draw pile is empty**. Complete the current turn, then a
 | Action | Effect |
 |--------|--------|
 | Draw | Take top card from deck, place face-up |
-| Steal | Take face-up card from opponent (after 2 draws) |
-| Stop | End turn, keep face-up cards to bank next turn |
-| Bust | Duplicate with 3+ cards = lose all face-up cards |
+| Steal | Take matching cards from opponents (optional after drawing) |
+| Stop | End turn (after 3+ cards), bank face-up cards next turn |
+| Bust | 3+ of same value = lose all face-up cards |

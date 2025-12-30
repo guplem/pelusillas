@@ -4,9 +4,9 @@ import {
 	BankActionHistory,
 	BustActionHistory,
 	DrawActionHistory,
-	DrawActionParams,
 	Game,
 	GamePlayer,
+	StealActionHistory,
 	StopActionHistory,
 } from '@/app/modules/game/model';
 import { createGame } from '@/app/modules/game/setup';
@@ -156,18 +156,36 @@ const getNextGameState = (
 		game = bankCards(game, playerId);
 	}
 
-	switch (actionConfig.action) {
-		case ActionTypes.Draw: {
-			result = draw(game, playerId, actionConfig.params as DrawActionParams);
-			break;
+	// If there's a pending steal decision, only allow Steal or SkipSteal actions
+	if (game.pendingStealDecision) {
+		switch (actionConfig.action) {
+			case ActionTypes.Steal: {
+				result = executeSteal(game, playerId);
+				break;
+			}
+			case ActionTypes.SkipSteal: {
+				result = skipSteal(game, playerId);
+				break;
+			}
+			default: {
+				console.error(`Cannot perform ${actionConfig.action} while pending steal decision exists`);
+				return null;
+			}
 		}
-		case ActionTypes.Stop: {
-			result = stop(game, playerId);
-			break;
-		}
-		default: {
-			console.error(`Unknown action type: ${actionConfig.action}`);
-			break;
+	} else {
+		switch (actionConfig.action) {
+			case ActionTypes.Draw: {
+				result = draw(game, playerId);
+				break;
+			}
+			case ActionTypes.Stop: {
+				result = stop(game, playerId);
+				break;
+			}
+			default: {
+				console.error(`Unknown action type: ${actionConfig.action}`);
+				break;
+			}
 		}
 	}
 
@@ -215,9 +233,10 @@ const bankCards = (game: Game, playerId: string): Game => {
 
 /**
  * Handles the Draw action.
- * Draws a card from the deck, optionally steals matching cards, and checks for bust.
+ * Draws a card from the deck. If other players have matching cards,
+ * sets up a pending steal decision. Otherwise, checks for bust.
  */
-const draw = (game: Game, playerId: string, params: DrawActionParams): Game | null => {
+const draw = (game: Game, playerId: string): Game | null => {
 	const player: GamePlayer | undefined = game.players.find((p) => p.id === playerId);
 
 	if (!player) {
@@ -233,48 +252,19 @@ const draw = (game: Game, playerId: string, params: DrawActionParams): Game | nu
 	// Draw a card from the deck
 	const drawnCard: number = game.deck.pop()!;
 
-	// Check if this is a duplicate (player already has this value)
-	const hasDuplicate: boolean = player.faceUpCards.includes(drawnCard);
+	// Count how many of this value the player already has
+	const existingCount: number = player.faceUpCards.filter(
+		(card: number) => card === drawnCard,
+	).length;
 
 	// Add the drawn card to face-up cards
 	player.faceUpCards.push(drawnCard);
 
-	// Track stolen cards for history
-	const stolenFromPlayers: string[] = [];
-	let stolenCardsCount: number = 0;
-
-	// Handle stealing: mandatory after 2 cards, optional for first 2
-	const shouldSteal: boolean = player.faceUpCards.length > 2 || params.stealMatching === true;
-
-	if (shouldSteal) {
-		// Steal all matching cards from other players
-		for (const otherPlayer of game.players) {
-			if (otherPlayer.id === playerId) continue;
-
-			const matchingCards: number[] = otherPlayer.faceUpCards.filter(
-				(card: number) => card === drawnCard,
-			);
-
-			if (matchingCards.length > 0) {
-				stolenFromPlayers.push(otherPlayer.id);
-				stolenCardsCount += matchingCards.length;
-
-				// Remove matching cards from other player
-				otherPlayer.faceUpCards = otherPlayer.faceUpCards.filter(
-					(card: number) => card !== drawnCard,
-				);
-
-				// Add stolen cards to current player
-				player.faceUpCards.push(...matchingCards);
-			}
-		}
-	}
-
-	// Record draw action in history
+	// Record draw action in history (no stealing info - that's a separate action now)
 	const drawHistoryEntry: DrawActionHistory = {
 		drawnCardValue: drawnCard,
-		stolenFromPlayers,
-		stolenCardsCount,
+		stolenFromPlayers: [], // Deprecated - kept for backward compatibility
+		stolenCardsCount: 0, // Deprecated - kept for backward compatibility
 	};
 
 	game.history.push({
@@ -284,36 +274,154 @@ const draw = (game: Game, playerId: string, params: DrawActionParams): Game | nu
 		data: drawHistoryEntry,
 	});
 
-	// Check for bust condition: duplicate AND 3+ cards face up
-	if (hasDuplicate && player.faceUpCards.length >= 3) {
-		// Player busts - loses all face-up cards
-		const cardsLost: number = player.faceUpCards.length;
-		const totalValueLost: number = calculateScore(player.faceUpCards);
+	// Check for bust condition: player now has 3+ cards of the same value
+	const isBust: boolean = existingCount >= 2;
 
-		const bustHistoryEntry: BustActionHistory = {
-			duplicateValue: drawnCard,
-			cardsLost,
-			totalValueLost,
+	if (isBust) {
+		return handleBust(game, player, playerId, drawnCard);
+	}
+
+	// Check if any other players have matching cards that can be stolen
+	const stealableFrom: string[] = [];
+	for (const otherPlayer of game.players) {
+		if (otherPlayer.id === playerId) continue;
+		if (otherPlayer.faceUpCards.includes(drawnCard)) {
+			stealableFrom.push(otherPlayer.id);
+		}
+	}
+
+	// If there are stealable cards, set up pending decision
+	if (stealableFrom.length > 0) {
+		game.pendingStealDecision = {
+			drawnCardValue: drawnCard,
+			stealableFrom,
 		};
+	}
 
-		game.history.push({
-			turn: game.turn,
-			action: 'bust',
-			sourcePlayerId: playerId,
-			data: bustHistoryEntry,
-		});
+	return game;
+};
 
-		// Move all face-up cards to discard pile
-		game.discardPile.push(...player.faceUpCards);
-		player.faceUpCards = [];
+/**
+ * Handles the bust scenario when a player draws a third card of the same value.
+ */
+const handleBust = (
+	game: Game,
+	player: GamePlayer,
+	playerId: string,
+	duplicateValue: number,
+): Game => {
+	const cardsLost: number = player.faceUpCards.length;
+	const totalValueLost: number = calculateScore(player.faceUpCards);
 
-		console.log(
-			`Player ${playerId} busted with duplicate ${drawnCard}! Lost ${cardsLost} cards worth ${totalValueLost} points.`,
+	const bustHistoryEntry: BustActionHistory = {
+		duplicateValue,
+		cardsLost,
+		totalValueLost,
+	};
+
+	game.history.push({
+		turn: game.turn,
+		action: 'bust',
+		sourcePlayerId: playerId,
+		data: bustHistoryEntry,
+	});
+
+	// Move all face-up cards to discard pile
+	game.discardPile.push(...player.faceUpCards);
+	player.faceUpCards = [];
+
+	console.log(
+		`Player ${playerId} busted with duplicate ${duplicateValue}! Lost ${cardsLost} cards worth ${totalValueLost} points.`,
+	);
+
+	// End turn after bust
+	return advanceToNextTurn(game);
+};
+
+/**
+ * Executes the steal action - takes all matching cards from other players.
+ */
+const executeSteal = (game: Game, playerId: string): Game | null => {
+	if (!game.pendingStealDecision) {
+		console.error('No pending steal decision');
+		return null;
+	}
+
+	const player: GamePlayer | undefined = game.players.find((p) => p.id === playerId);
+	if (!player) {
+		console.error('Invalid player for steal action');
+		return null;
+	}
+
+	const cardValue: number = game.pendingStealDecision.drawnCardValue;
+	const stolenFromPlayers: string[] = [];
+	let stolenCardsCount: number = 0;
+
+	// Steal all matching cards from other players
+	for (const otherPlayer of game.players) {
+		if (otherPlayer.id === playerId) continue;
+
+		const matchingCards: number[] = otherPlayer.faceUpCards.filter(
+			(card: number) => card === cardValue,
 		);
 
-		// End turn after bust
-		game = advanceToNextTurn(game);
+		if (matchingCards.length > 0) {
+			stolenFromPlayers.push(otherPlayer.id);
+			stolenCardsCount += matchingCards.length;
+
+			// Remove matching cards from other player
+			otherPlayer.faceUpCards = otherPlayer.faceUpCards.filter(
+				(card: number) => card !== cardValue,
+			);
+
+			// Add stolen cards to current player
+			player.faceUpCards.push(...matchingCards);
+		}
 	}
+
+	// Record steal action in history
+	const stealHistoryEntry: StealActionHistory = {
+		stolenCardValue: cardValue,
+		stolenFromPlayers,
+		stolenCardsCount,
+	};
+
+	game.history.push({
+		turn: game.turn,
+		action: ActionTypes.Steal,
+		sourcePlayerId: playerId,
+		data: stealHistoryEntry,
+	});
+
+	console.log(`Player ${playerId} stole ${stolenCardsCount} cards of value ${cardValue}.`);
+
+	// Check for bust after stealing (might now have 3+ of the same value)
+	const cardCount: number = player.faceUpCards.filter((c) => c === cardValue).length;
+	if (cardCount >= 3) {
+		// Clear pending decision before handling bust
+		game.pendingStealDecision = undefined;
+		return handleBust(game, player, playerId, cardValue);
+	}
+
+	// Clear pending decision
+	game.pendingStealDecision = undefined;
+
+	return game;
+};
+
+/**
+ * Skips the steal action - player declines to take matching cards.
+ */
+const skipSteal = (game: Game, playerId: string): Game | null => {
+	if (!game.pendingStealDecision) {
+		console.error('No pending steal decision');
+		return null;
+	}
+
+	console.log(`Player ${playerId} declined to steal.`);
+
+	// Clear pending decision
+	game.pendingStealDecision = undefined;
 
 	return game;
 };

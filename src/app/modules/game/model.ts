@@ -20,6 +20,14 @@ export interface Game {
 	 */
 	hasBankedThisTurn: boolean;
 	/**
+	 * Tracks if the current player has a pending steal decision after drawing.
+	 * Contains the value of the card drawn if other players have matching cards.
+	 */
+	pendingStealDecision?: {
+		drawnCardValue: number;
+		stealableFrom: string[]; // Player IDs that have matching cards
+	};
+	/**
 	 * The winner of the game, if determined.
 	 *
 	 * - `undefined`: The game is still in progress.
@@ -61,7 +69,7 @@ export interface GameConfig {
  */
 export interface ActionConfig {
 	action: ActionTypes;
-	params: DrawActionParams | StopActionParams;
+	params: DrawActionParams | StopActionParams | StealActionParams | SkipStealActionParams;
 }
 
 /* eslint-disable no-unused-vars */
@@ -70,20 +78,24 @@ export interface ActionConfig {
  *
  * @property Draw - Draw a card from the dust pile.
  * @property Stop - End your turn and keep your face-up cards for banking next turn.
+ * @property Steal - Steal matching cards from other players (after drawing).
+ * @property SkipSteal - Decline to steal matching cards (after drawing).
  */
 export enum ActionTypes {
 	Draw = 'draw',
 	Stop = 'stop',
+	Steal = 'steal',
+	SkipSteal = 'skipSteal',
 }
 /* eslint-enable no-unused-vars */
 
 /**
  * Parameters for a Draw action.
- * When drawing, stealing is optional for the first two cards, mandatory after.
+ * Drawing no longer has steal options - stealing is a separate decision.
  */
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface DrawActionParams {
-	/** Whether to steal matching cards from other players after drawing. Required choice for first 2 draws. */
-	stealMatching?: boolean;
+	// No parameters needed for draw action - stealing is a separate step
 }
 
 /**
@@ -96,20 +108,55 @@ export interface StopActionParams {
 }
 
 /**
+ * Parameters for a Steal action.
+ * Used when player decides to steal matching cards after drawing.
+ */
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export interface StealActionParams {
+	// No parameters needed - steals all matching cards from all players
+}
+
+/**
+ * Parameters for a SkipSteal action.
+ * Used when player declines to steal matching cards after drawing.
+ */
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export interface SkipStealActionParams {
+	// No parameters needed
+}
+
+/**
  * Represents a single action taken in the game, for use in the game history.
  */
 export interface HistoryElement {
 	turn: number;
 	action: ActionTypes | 'bank' | 'bust';
 	sourcePlayerId: string;
-	data: DrawActionHistory | StopActionHistory | BankActionHistory | BustActionHistory;
+	data:
+		| DrawActionHistory
+		| StopActionHistory
+		| BankActionHistory
+		| BustActionHistory
+		| StealActionHistory;
 }
 
 /**
  * Details for a Draw action in the game history.
+ * Now only tracks the drawn card, not stealing (which is a separate action).
  */
 export interface DrawActionHistory {
 	drawnCardValue: number;
+	/** @deprecated - Stealing is now tracked separately. Kept for backward compatibility. */
+	stolenFromPlayers: string[];
+	/** @deprecated - Stealing is now tracked separately. Kept for backward compatibility. */
+	stolenCardsCount: number;
+}
+
+/**
+ * Details for a Steal action in the game history.
+ */
+export interface StealActionHistory {
+	stolenCardValue: number;
 	stolenFromPlayers: string[];
 	stolenCardsCount: number;
 }

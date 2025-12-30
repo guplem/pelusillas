@@ -100,39 +100,45 @@ export default function HelpPage(): JSX.Element {
 
 				<h3>2. Action Phase</h3>
 				<p>
-					You must take at least one action. You can continue drawing until you choose to stop or
-					bust.
+					You must draw at least 3 cards before you can stop. After that, you can continue drawing
+					or stop to keep your cards.
 				</p>
 
 				<h4>🃏 Draw</h4>
 				<ul>
 					<li>Draw the top card from the deck and add it face-up in front of you.</li>
 					<li>
-						<strong>Bust Rule:</strong> If the card matches the value of any card you already have
-						face-up, AND you have 3 or more face-up cards after drawing, you BUST! All your face-up
-						cards go to the discard pile.
+						<strong>Bust Rule:</strong> If you have 3 or more of the same value face-up, you BUST!
+						All your face-up cards go to the discard pile.
+					</li>
+					<li>
+						<strong>Note:</strong> Having pairs (2 cards of the same value) is safe. You only bust
+						when you get 3+ of the same value.
 					</li>
 				</ul>
 
-				<h4> Steal (Optional)</h4>
+				<h4> Steal Decision</h4>
 				<ul>
 					<li>
-						Instead of drawing from the deck, you may steal one face-up card from another player.
+						When you draw a card, if any opponent has a face-up card matching the value you just
+						drew, you get a <strong>steal opportunity</strong>.
 					</li>
 					<li>
-						<strong>First Two Cards:</strong> Drawing is mandatory for your first two cards each
-						turn (you cannot steal).
+						You can choose to <strong>Steal</strong> (take all matching cards from opponents) or{' '}
+						<strong>Don&apos;t Steal</strong> (keep only the card you drew).
 					</li>
 					<li>
-						<strong>After Two Cards:</strong> Stealing becomes optional. You can choose to draw from
-						deck or steal from an opponent.
+						<strong>Important:</strong> Stealing may cause you to bust if you end up with 3+ of the
+						same value!
 					</li>
-					<li>The same bust rules apply when stealing!</li>
 				</ul>
 
 				<h4> Stop</h4>
 				<ul>
-					<li>You may stop at any time after drawing at least one card.</li>
+					<li>
+						You may stop at any time after you have at least 3 face-up cards (you must draw at least
+						3 times per turn).
+					</li>
 					<li>
 						Your face-up cards remain in front of you and will be banked at the start of your next
 						turn.
@@ -141,18 +147,15 @@ export default function HelpPage(): JSX.Element {
 				</ul>
 
 				<h2> Bust!</h2>
-				<p>
-					You bust when you draw or steal a card that matches the value of a card you already have
-					face-up, AND you have 3 or more face-up cards total. When you bust:
-				</p>
+				<p>You bust when you have 3 or more cards of the same value face-up. When you bust:</p>
 				<ul>
 					<li>All your face-up cards go to the discard pile</li>
 					<li>You score nothing this turn</li>
 					<li>Your turn ends immediately</li>
 				</ul>
 				<p>
-					<strong>Note:</strong> Having 2 cards with the same value is safe! You only bust if you
-					have 3+ cards total when you draw a duplicate.
+					<strong>Note:</strong> Having pairs (2 cards with the same value) is safe! You only bust
+					when you have 3+ of the same value.
 				</p>
 
 				<h2> Scoring</h2>
@@ -186,12 +189,12 @@ export default function HelpPage(): JSX.Element {
 						values are rarer and safer to collect.
 					</li>
 					<li>
-						<strong>Stealing:</strong> Steal high-value cards from opponents when possible, but be
-						careful of duplicates!
+						<strong>Steal Wisely:</strong> When offered a steal opportunity, consider if taking
+						those cards will put you at risk of busting (3+ of the same value).
 					</li>
 					<li>
-						<strong>Two is Safe:</strong> You can safely have 2 cards of the same value. The bust
-						only triggers with 3+ total cards.
+						<strong>Pairs are Safe:</strong> You can safely have 2 cards of the same value. Only 3+
+						of the same value causes a bust.
 					</li>
 				</ul>
 			</div>

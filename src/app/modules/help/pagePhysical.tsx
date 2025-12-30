@@ -55,8 +55,8 @@ export default function HelpPagePhysical(): JSX.Element {
 						score pile (safe points).
 					</li>
 					<li>
-						<strong>Action Phase:</strong> Draw cards face-up. You must draw at least once. Continue
-						drawing or stop at any time.
+						<strong>Action Phase:</strong> Draw cards face-up. You must draw at least 3 cards before
+						you can stop. Continue drawing or stop at any time after that.
 					</li>
 				</ol>
 
@@ -64,22 +64,31 @@ export default function HelpPagePhysical(): JSX.Element {
 				<ul>
 					<li>Draw the top card from the deck and place it face-up in front of you.</li>
 					<li>
-						<strong>Bust Rule:</strong> If you draw a card matching a value you already have face-up
-						AND you have 3+ total face-up cards, you BUST.
+						<strong>Bust Rule:</strong> If you have 3 or more cards of the same value face-up, you
+						BUST.
 					</li>
 					<li>When you bust, all face-up cards go to the discard pile.</li>
+					<li>
+						<strong>Note:</strong> Having pairs (2 cards of the same value) is safe!
+					</li>
 				</ul>
 
-				<h3>Stealing (Optional)</h3>
+				<h3>Stealing</h3>
 				<ul>
-					<li>After your first 2 cards, you may steal from another player instead of drawing.</li>
-					<li>Take one of their face-up cards and add it to your face-up area.</li>
-					<li>The same bust rules apply when stealing.</li>
+					<li>
+						When you draw a card, check if any opponent has a face-up card matching the value you
+						drew.
+					</li>
+					<li>If so, you may choose to steal all matching cards from opponents.</li>
+					<li>
+						<strong>Important:</strong> Stealing may cause you to bust if you end up with 3+ of the
+						same value!
+					</li>
 				</ul>
 
 				<h3>Stopping</h3>
 				<ul>
-					<li>Say &ldquo;Stop&rdquo; to end your turn.</li>
+					<li>Say &ldquo;Stop&rdquo; to end your turn (only after drawing at least 3 cards).</li>
 					<li>Your face-up cards remain and will be banked at the start of your next turn.</li>
 				</ul>
 
@@ -111,15 +120,19 @@ export default function HelpPagePhysical(): JSX.Element {
 						</tr>
 						<tr>
 							<td style={{ padding: '8px' }}>Steal</td>
-							<td style={{ padding: '8px' }}>Take face-up card from opponent (after 2 draws)</td>
+							<td style={{ padding: '8px' }}>
+								Take matching cards from opponents (optional after drawing)
+							</td>
 						</tr>
 						<tr>
 							<td style={{ padding: '8px' }}>Stop</td>
-							<td style={{ padding: '8px' }}>End turn, keep face-up cards to bank next turn</td>
+							<td style={{ padding: '8px' }}>
+								End turn (after 3+ cards), bank face-up cards next turn
+							</td>
 						</tr>
 						<tr>
 							<td style={{ padding: '8px' }}>Bust</td>
-							<td style={{ padding: '8px' }}>Duplicate with 3+ cards = lose all face-up cards</td>
+							<td style={{ padding: '8px' }}>3+ of same value = lose all face-up cards</td>
 						</tr>
 					</tbody>
 				</table>

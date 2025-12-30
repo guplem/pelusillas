@@ -4,6 +4,7 @@ import {
 	BustActionHistory,
 	DrawActionHistory,
 	HistoryElement,
+	StealActionHistory,
 	StopActionHistory,
 } from '@/app/modules/game/model';
 import { PlayerContext, PlayerContextType } from '@/app/modules/player/manager';
@@ -22,6 +23,12 @@ interface ProcessedLogEntry {
 	details: string;
 	icon?: string;
 	isBust?: boolean;
+	/** Additional info about cards stolen during a draw action */
+	stealInfo?: {
+		count: number;
+		value: number;
+		victims: string[];
+	};
 }
 
 /**
@@ -84,21 +91,6 @@ export const GameLogPanel: React.FC<GameLogProps> = ({
 					switch (element.action) {
 						case ActionTypes.Draw: {
 							const data: DrawActionHistory = element.data as DrawActionHistory;
-							const hasStolen: boolean = data.stolenFromPlayers.length > 0;
-							if (hasStolen) {
-								const victimInfo: { name: string; color?: string } = getPlayerInfo(
-									data.stolenFromPlayers[0],
-								);
-								return {
-									id: baseId,
-									turn: element.turn,
-									action: ActionTypes.Draw,
-									player: playerInfo.name,
-									playerColor: playerInfo.color,
-									details: `Stole a ${data.drawnCardValue} from ${victimInfo.name}`,
-									icon: '🎯',
-								};
-							}
 							return {
 								id: baseId,
 								turn: element.turn,
@@ -107,6 +99,15 @@ export const GameLogPanel: React.FC<GameLogProps> = ({
 								playerColor: playerInfo.color,
 								details: `Drew a ${data.drawnCardValue} from the deck`,
 								icon: '🃏',
+								// Include steal info as supplementary data
+								stealInfo:
+									data.stolenCardsCount > 0
+										? {
+												count: data.stolenCardsCount,
+												value: data.drawnCardValue,
+												victims: data.stolenFromPlayers.map((id) => getPlayerInfo(id).name),
+											}
+										: undefined,
 							};
 						}
 
@@ -120,6 +121,34 @@ export const GameLogPanel: React.FC<GameLogProps> = ({
 								playerColor: playerInfo.color,
 								details: `Stopped and kept ${data.cardsKept} cards`,
 								icon: '✋',
+							};
+						}
+
+						case ActionTypes.Steal: {
+							const data: StealActionHistory = element.data as StealActionHistory;
+							const victimNames: string[] = data.stolenFromPlayers.map(
+								(id) => getPlayerInfo(id).name,
+							);
+							return {
+								id: baseId,
+								turn: element.turn,
+								action: ActionTypes.Steal,
+								player: playerInfo.name,
+								playerColor: playerInfo.color,
+								details: `Stole ${data.stolenCardsCount} ${data.stolenCardsCount === 1 ? 'card' : 'cards'} (${data.stolenCardValue}s) from ${victimNames.join(', ')}`,
+								icon: '🎯',
+							};
+						}
+
+						case ActionTypes.SkipSteal: {
+							return {
+								id: baseId,
+								turn: element.turn,
+								action: ActionTypes.SkipSteal,
+								player: playerInfo.name,
+								playerColor: playerInfo.color,
+								details: `Declined to steal`,
+								icon: '🚫',
 							};
 						}
 
@@ -268,6 +297,26 @@ export const GameLogPanel: React.FC<GameLogProps> = ({
 																	<span style={{ marginRight: '8px' }}>{entry.icon}</span>
 																	<span className='log-entry__description'>{entry.details}</span>
 																</div>
+																{/* Show steal info as additional line when applicable */}
+																{entry.stealInfo && (
+																	<div
+																		className='log-entry__steal'
+																		style={{
+																			marginTop: '4px',
+																			marginLeft: '24px',
+																			fontSize: '0.9em',
+																			color: '#e07b53',
+																		}}
+																	>
+																		<span style={{ marginRight: '8px' }}>🎯</span>
+																		<span>
+																			Stole {entry.stealInfo.count}{' '}
+																			{entry.stealInfo.count === 1 ? 'card' : 'cards'} (
+																			{entry.stealInfo.value}s) from{' '}
+																			{entry.stealInfo.victims.join(', ')}
+																		</span>
+																	</div>
+																)}
 															</div>
 														</div>
 													))}

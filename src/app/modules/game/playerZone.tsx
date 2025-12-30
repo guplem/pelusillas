@@ -1,6 +1,6 @@
-import ScorePileDisplay from '@/app/modules/game/accumulatorCard';
 import DustBunnyCard from '@/app/modules/game/handCard';
 import { GamePlayer } from '@/app/modules/game/model';
+import ScorePileDisplay from '@/app/modules/game/scorePileCard';
 import { calculateScore, countCardsByValue } from '@/app/modules/game/utils';
 import PlayerCard from '@/app/modules/player/card';
 import { PlayerContext, PlayerContextType } from '@/app/modules/player/manager';

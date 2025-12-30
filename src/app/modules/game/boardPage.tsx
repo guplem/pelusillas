@@ -178,77 +178,110 @@ export default function GameBoardPage({ userPlayerId }: BoardPageParams): JSX.El
 															padding: '10px',
 														}}
 													>
-														<button
-															disabled={!isThisPlayerTurn || deckSize === 0}
-															style={{
-																padding: '15px',
-																fontSize: '1.1rem',
-																backgroundColor:
-																	isThisPlayerTurn && deckSize > 0 ? '#4a9c6d' : undefined,
-															}}
-															onClick={() => {
-																// For first 2 cards, offer choice to steal
-																// After that, stealing is automatic
-																const shouldSteal: boolean = userFaceUpCards.length >= 2;
-																gameProvider.executeAction(userGamePlayer.id, {
-																	action: ActionTypes.Draw,
-																	params: {
-																		stealMatching: shouldSteal,
-																	},
-																});
-															}}
-														>
-															🎴 Draw Card
-															{userFaceUpCards.length < 2 && deckSize > 0 && isThisPlayerTurn && (
-																<div style={{ fontSize: '0.7rem', marginTop: '4px' }}>
-																	(No stealing yet)
+														{/* Pending Steal Decision - show steal options */}
+														{gameProvider.game?.pendingStealDecision && isThisPlayerTurn ? (
+															<>
+																<div
+																	style={{
+																		textAlign: 'center',
+																		padding: '8px',
+																		backgroundColor: 'rgba(224, 123, 83, 0.2)',
+																		borderRadius: '8px',
+																		marginBottom: '5px',
+																	}}
+																>
+																	<strong>
+																		Steal {gameProvider.game.pendingStealDecision.drawnCardValue}
+																		s?
+																	</strong>
 																</div>
-															)}
-														</button>
-
-														{/* Steal option for first 2 cards */}
-														{userFaceUpCards.length > 0 &&
-															userFaceUpCards.length < 3 &&
-															isThisPlayerTurn &&
-															deckSize > 0 && (
 																<button
 																	style={{
-																		padding: '10px',
-																		fontSize: '0.9rem',
+																		padding: '15px',
+																		fontSize: '1.1rem',
 																		backgroundColor: '#e07b53',
 																	}}
 																	onClick={() => {
 																		gameProvider.executeAction(userGamePlayer.id, {
-																			action: ActionTypes.Draw,
-																			params: {
-																				stealMatching: true,
-																			},
+																			action: ActionTypes.Steal,
+																			params: {},
 																		});
 																	}}
 																>
-																	🎴 Draw & Steal
+																	🎯 Steal Cards
 																</button>
-															)}
+																<button
+																	style={{
+																		padding: '15px',
+																		fontSize: '1.1rem',
+																		backgroundColor: '#888',
+																	}}
+																	onClick={() => {
+																		gameProvider.executeAction(userGamePlayer.id, {
+																			action: ActionTypes.SkipSteal,
+																			params: {},
+																		});
+																	}}
+																>
+																	🚫 Don't Steal
+																</button>
+															</>
+														) : (
+															<>
+																{/* Normal action buttons - Draw and Stop */}
+																<button
+																	disabled={!isThisPlayerTurn || deckSize === 0}
+																	style={{
+																		padding: '15px',
+																		fontSize: '1.1rem',
+																		backgroundColor:
+																			isThisPlayerTurn && deckSize > 0 ? '#4a9c6d' : undefined,
+																	}}
+																	onClick={() => {
+																		gameProvider.executeAction(userGamePlayer.id, {
+																			action: ActionTypes.Draw,
+																			params: {},
+																		});
+																	}}
+																>
+																	🎴 Draw Card
+																</button>
 
-														<button
-															disabled={!isThisPlayerTurn || userFaceUpCards.length === 0}
-															style={{
-																padding: '15px',
-																fontSize: '1.1rem',
-																backgroundColor:
-																	isThisPlayerTurn && userFaceUpCards.length > 0
-																		? '#5a8dc7'
-																		: undefined,
-															}}
-															onClick={() => {
-																gameProvider.executeAction(userGamePlayer.id, {
-																	action: ActionTypes.Stop,
-																	params: {},
-																});
-															}}
-														>
-															✋ Stop & Keep Cards
-														</button>
+																<button
+																	disabled={!isThisPlayerTurn || userFaceUpCards.length < 3}
+																	style={{
+																		padding: '15px',
+																		fontSize: '1.1rem',
+																		backgroundColor:
+																			isThisPlayerTurn && userFaceUpCards.length >= 3
+																				? '#5a8dc7'
+																				: undefined,
+																		opacity:
+																			isThisPlayerTurn && userFaceUpCards.length < 3 ? 0.5 : 1,
+																	}}
+																	onClick={() => {
+																		gameProvider.executeAction(userGamePlayer.id, {
+																			action: ActionTypes.Stop,
+																			params: {},
+																		});
+																	}}
+																>
+																	✋ Stop & Keep Cards
+																	{userFaceUpCards.length < 3 &&
+																		isThisPlayerTurn &&
+																		userFaceUpCards.length > 0 && (
+																			<div
+																				style={{
+																					fontSize: '0.7rem',
+																					marginTop: '4px',
+																				}}
+																			>
+																				(Need {3 - userFaceUpCards.length} more cards)
+																			</div>
+																		)}
+																</button>
+															</>
+														)}
 													</div>
 
 													{/* Turn indicator */}

@@ -1,4 +1,4 @@
-import { Scenario } from '@/app/modules/ai/model';
+import { PendingStealDecision, Scenario } from '@/app/modules/ai/model';
 import { strategiesList } from '@/app/modules/ai/strategies';
 import { executeAction } from '@/app/modules/game/manager';
 import { ActionConfig, ActionTypes, Game, GamePlayer } from '@/app/modules/game/model';
@@ -39,6 +39,14 @@ export const executeAiStrategy = async (
 		`Executing AI strategy for player ${currentPlayer.name} with strategy "${currentPlayer.aiStrategy}".`,
 	);
 
+	// Convert game pending steal decision to AI scenario format
+	const pendingStealDecision: PendingStealDecision | undefined = game.pendingStealDecision
+		? {
+				drawnCardValue: game.pendingStealDecision.drawnCardValue,
+				stealableFrom: game.pendingStealDecision.stealableFrom,
+			}
+		: undefined;
+
 	const scenario: Scenario = {
 		board: game.players.map((player) => ({
 			playerId: player.id,
@@ -49,6 +57,7 @@ export const executeAiStrategy = async (
 		turn: game.turn,
 		playerId: currentPlayerId,
 		history: game.history,
+		pendingStealDecision,
 	};
 
 	await delay(game.aiDelay || 500);
@@ -78,7 +87,7 @@ export const executeAiStrategy = async (
 
 /**
  * Executes a fallback action for the AI player if their strategy fails.
- * In Pelusillas, the fallback is to draw a card (or stop if too risky).
+ * In Pelusillas, the fallback handles steal decisions and draw/stop actions.
  */
 const executeFallbackAction = (
 	game: Game,
@@ -86,6 +95,19 @@ const executeFallbackAction = (
 	currentPlayer: Player,
 ): void => {
 	console.log(`Executing fallback action for player ${currentPlayer.id}.`);
+
+	// If there's a pending steal decision, always steal as fallback
+	if (game.pendingStealDecision) {
+		const fallbackAction: ActionConfig = {
+			action: ActionTypes.Steal,
+			params: {},
+		};
+		const success: boolean = executeAction(game, setGame, currentPlayer.id, fallbackAction);
+		if (!success) {
+			console.error(`Fallback steal action failed for player ${currentPlayer.id}.`);
+		}
+		return;
+	}
 
 	const currentGamePlayer: GamePlayer | undefined = game.players.find(
 		(p) => p.id === currentPlayer.id,
@@ -101,7 +123,7 @@ const executeFallbackAction = (
 				}
 			: {
 					action: ActionTypes.Draw,
-					params: { stealMatching: true },
+					params: {},
 				};
 
 	const success: boolean = executeAction(game, setGame, currentPlayer.id, fallbackAction);
