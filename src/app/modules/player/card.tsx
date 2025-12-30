@@ -1,5 +1,5 @@
 import { GamePlayer } from '@/app/modules/game/model';
-import { remainingAccumulatorsDefending } from '@/app/modules/game/utils';
+import { calculateScore } from '@/app/modules/game/utils';
 import { Player } from '@/app/modules/player/model';
 import { isPlayerOwned } from '@/app/modules/player/utils';
 import React, { JSX, useState } from 'react';
@@ -123,20 +123,19 @@ export default function PlayerCard({
 					</button>
 				)}
 
-				{/* Optional: Display game player info if available */}
-				{!showHover && (
+				{/* Display game player score info if available */}
+				{!showHover && gamePlayer && (
 					<div
 						style={{
 							display: 'flex',
-							flexDirection: 'row',
-							justifyContent: 'space-evenly',
-							gap: '4px',
+							flexDirection: 'column',
+							alignItems: 'center',
+							gap: '2px',
 							cursor: 'default',
 						}}
 					>
-						{/* <div>{remainingHp(gamePlayer.accumulators)} HP</div>
-					<div>{remainingAccumulators(gamePlayer.accumulators).length} Acc</div> */}
-						<h2>{remainingAccumulatorsDefending(gamePlayer?.accumulators ?? []).length}</h2>
+						<h3 style={{ margin: 0 }}>{calculateScore(gamePlayer.scorePile)}</h3>
+						<div style={{ fontSize: '0.7rem' }}>pts</div>
 					</div>
 				)}
 			</div>

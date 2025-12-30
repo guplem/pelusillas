@@ -1,13 +1,13 @@
-import GameHandCard from '@/app/modules/game/handCard';
+import DustBunnyCard from '@/app/modules/game/handCard';
 import { GameLogPanel } from '@/app/modules/game/logPanel';
 import { GameContext, GameContextType } from '@/app/modules/game/manager';
 import { ActionTypes, GamePlayer } from '@/app/modules/game/model';
 import GamePlayerZone from '@/app/modules/game/playerZone';
-import { remainingAccumulatorsDefending, remainingHp } from '@/app/modules/game/utils';
+import { calculateScore, countCardsByValue } from '@/app/modules/game/utils';
 import { PlayerContext, PlayerContextType } from '@/app/modules/player/manager';
 import { Player } from '@/app/modules/player/model';
 import { RoomStore, RoomStoreType } from '@/app/modules/room/store';
-import React, { JSX, MouseEvent, useState } from 'react';
+import { JSX, MouseEvent } from 'react';
 
 interface BoardPageParams {
 	/** The id for the player that the user is controlling */
@@ -16,8 +16,6 @@ interface BoardPageParams {
 
 export default function GameBoardPage({ userPlayerId }: BoardPageParams): JSX.Element {
 	const { leave }: RoomStoreType = RoomStore();
-	const [handSelected, setHandSelected] = useState<number | null>(null);
-	const [boomValue, setBoomValue] = useState<string>('');
 
 	return (
 		<>
@@ -35,18 +33,14 @@ export default function GameBoardPage({ userPlayerId }: BoardPageParams): JSX.El
 					const isThisPlayerTurn: boolean = !!(
 						userGamePlayer && currentPlayerId === userGamePlayer.id
 					);
-					const canBoom: boolean =
-						userGamePlayer?.hand.length === 3 &&
-						userGamePlayer?.hand.reduce((sum: number, value: number) => sum + value, 0) === 0;
 
-					function handleSelectHandCard(handCardIndex: number): void {
-						setHandSelected((prevSelected) => {
-							if (prevSelected === handCardIndex) {
-								return null; // Deselect if already selected
-							}
-							return handCardIndex; // Select the new card
-						});
-					}
+					const deckSize: number = gameProvider.game?.deck.length ?? 0;
+					const userFaceUpCards: number[] = userGamePlayer?.faceUpCards ?? [];
+					const userScore: number = calculateScore(userGamePlayer?.scorePile ?? []);
+					const userFaceUpTotal: number = calculateScore(userFaceUpCards);
+
+					// Group face-up cards by value for display
+					const groupedCards: Map<number, number> = countCardsByValue(userFaceUpCards);
 
 					return (
 						<PlayerContext.Consumer>
@@ -70,7 +64,7 @@ export default function GameBoardPage({ userPlayerId }: BoardPageParams): JSX.El
 										<div
 											style={{
 												flex: 1,
-												minWidth: '200px',
+												minWidth: '220px',
 												backgroundColor: playerData?.color ?? 'var(--container)',
 												display: 'flex',
 												flexDirection: 'column',
@@ -85,7 +79,7 @@ export default function GameBoardPage({ userPlayerId }: BoardPageParams): JSX.El
 												}}
 											>
 												<a
-													href='#' // With this, the link will visually look like a link, but it won't redirect to anything
+													href='#'
 													onClick={(e: MouseEvent<HTMLAnchorElement>): void => {
 														e.preventDefault();
 														leave();
@@ -95,7 +89,7 @@ export default function GameBoardPage({ userPlayerId }: BoardPageParams): JSX.El
 												</a>
 												{' - '}
 												<a
-													href='#' // With this, the link will visually look like a link, but it won't redirect to anything
+													href='#'
 													onClick={(e: MouseEvent<HTMLAnchorElement>): void => {
 														e.preventDefault();
 														gameProvider.finishGame();
@@ -107,158 +101,168 @@ export default function GameBoardPage({ userPlayerId }: BoardPageParams): JSX.El
 												<a href='/help' target='_blank' rel='noopener noreferrer'>
 													Help
 												</a>
-											</small>{' '}
-											{/* {!userGamePlayer && (
-												<div>
-													Unknown Controlled player: {userPlayerId}. <br /> All (
-													{gameProvider.game?.players.length}) players:{' '}
-													{gameProvider.game?.players.map((player) => player.id).join(', ')}
-												</div>
-											)} */}
-											{/* {isThisPlayerTurn && <div style={{ textAlign: 'center' }}>Your Turn</div>} */}
+											</small>
+
 											{userGamePlayer && (
 												<>
+													{/* Player Stats */}
 													<div
 														style={{
 															display: 'flex',
 															flexDirection: 'column',
-															justifyContent: 'center',
-															gap: '10px',
-															minHeight: 0,
-															padding: '10px',
-															overflow: 'visible',
-														}}
-													>
-														{userGamePlayer.hand.map((handCard, index) => (
-															<GameHandCard
-																onClick={() => handleSelectHandCard(index)}
-																style={{
-																	cursor: 'pointer',
-																}}
-																key={index}
-																originalValue={handCard}
-																isSelected={handSelected === index}
-																isPlayerTurn={isThisPlayerTurn}
-															/>
-														))}
-													</div>
-													<div
-														style={{
-															display: 'flex',
-															flexDirection: 'row',
-															justifyContent: 'space-evenly',
 															alignItems: 'center',
-															gap: '10px',
-															margin: '10px',
+															gap: '15px',
+															padding: '10px',
 														}}
 													>
-														<div
-															style={{
-																textAlign: 'center',
-																display: 'flex',
-																flexDirection: 'column',
-																alignItems: 'center',
-															}}
-														>
-															<h2>
-																{
-																	remainingAccumulatorsDefending(userGamePlayer.accumulators).length
-																}{' '}
-															</h2>
-															<div>Defenses</div>
-														</div>
-														<div>
-															<p>{remainingHp(userGamePlayer.accumulators)} HP</p>
-															<p>{userGamePlayer.accumulators.length} Acc</p>
-														</div>
-													</div>
-													<div
-														style={{
-															display: 'flex',
-															flexDirection: 'column',
-															justifyContent: 'center',
-															gap: '10px',
-														}}
-													>
-														<div
-															style={{
-																display: 'flex',
-																flexDirection: 'row',
-																alignItems: 'center',
-																justifyContent: 'center',
-																gap: '10px',
-															}}
-														>
-															<input
-																style={{ flex: 1 }}
-																type='number'
-																min='1'
-																max='9'
-																value={boomValue}
-																onChange={(e: React.ChangeEvent<HTMLInputElement>): void => {
-																	const value: string = e.target.value;
-																	if (value === '' || (Number(value) >= 1 && Number(value) <= 9)) {
-																		setBoomValue(value);
-																	}
-																}}
-																placeholder='Target'
-																disabled={!isThisPlayerTurn || !canBoom}
-															/>
-															<button
-																style={{
-																	flex: 1,
-																	flexDirection: 'column',
-																	display: 'flex',
-																	alignItems: 'center',
-																}}
-																disabled={boomValue === '' || !isThisPlayerTurn || !canBoom}
-																onClick={() => {
-																	const numValue: number = Number(boomValue);
-																	if (numValue >= 1 && numValue <= 9) {
-																		const success: boolean = gameProvider.executeAction(
-																			userGamePlayer.id,
-																			{
-																				action: ActionTypes.Boom,
-																				params: {
-																					targetValue: numValue,
-																				},
-																			},
-																		);
-																		if (success) {
-																			setBoomValue(''); // Reset input after action
-																		}
-																	}
-																}}
-															>
-																<img
-																	src='/boom-text.png'
-																	alt='Boom Action'
-																	style={{
-																		opacity:
-																			boomValue === '' || !isThisPlayerTurn || !canBoom ? 0.5 : 1,
-																		maxHeight: '25px',
-																	}}
-																/>
-															</button>
+														<div style={{ textAlign: 'center' }}>
+															<h3 style={{ margin: '0 0 5px 0' }}>Your Stats</h3>
+															<div>
+																Banked Score: <strong>{userScore}</strong>
+															</div>
+															<div>
+																At Risk: <strong>{userFaceUpTotal}</strong> (
+																{userFaceUpCards.length} cards)
+															</div>
 														</div>
 
+														{/* Face-up cards display */}
+														{userFaceUpCards.length > 0 && (
+															<div style={{ textAlign: 'center' }}>
+																<div style={{ fontSize: '0.9rem', marginBottom: '8px' }}>
+																	Your Face-Up Cards:
+																</div>
+																<div
+																	style={{
+																		display: 'flex',
+																		flexWrap: 'wrap',
+																		gap: '8px',
+																		justifyContent: 'center',
+																	}}
+																>
+																	{Array.from(groupedCards.entries())
+																		.sort(([a], [b]) => a - b)
+																		.map(([value, count]) => (
+																			<DustBunnyCard
+																				key={value}
+																				value={value}
+																				count={count}
+																				style={{ width: '50px', height: '50px' }}
+																			/>
+																		))}
+																</div>
+															</div>
+														)}
+													</div>
+
+													{/* Deck Info */}
+													<div
+														style={{
+															textAlign: 'center',
+															padding: '10px',
+															backgroundColor: 'rgba(0,0,0,0.1)',
+															borderRadius: '8px',
+														}}
+													>
+														<div style={{ fontSize: '0.9rem' }}>Dust Pile</div>
+														<h2 style={{ margin: '5px 0' }}>{deckSize}</h2>
+														<div style={{ fontSize: '0.8rem' }}>cards remaining</div>
+													</div>
+
+													{/* Action Buttons */}
+													<div
+														style={{
+															display: 'flex',
+															flexDirection: 'column',
+															gap: '10px',
+															padding: '10px',
+														}}
+													>
 														<button
-															disabled={handSelected === null || !isThisPlayerTurn}
+															disabled={!isThisPlayerTurn || deckSize === 0}
+															style={{
+																padding: '15px',
+																fontSize: '1.1rem',
+																backgroundColor:
+																	isThisPlayerTurn && deckSize > 0 ? '#4a9c6d' : undefined,
+															}}
 															onClick={() => {
-																let success: boolean = false;
-																success = gameProvider.executeAction(userGamePlayer.id, {
-																	action: ActionTypes.Discard,
+																// For first 2 cards, offer choice to steal
+																// After that, stealing is automatic
+																const shouldSteal: boolean = userFaceUpCards.length >= 2;
+																gameProvider.executeAction(userGamePlayer.id, {
+																	action: ActionTypes.Draw,
 																	params: {
-																		sourceHandIndex: handSelected!,
+																		stealMatching: shouldSteal,
 																	},
 																});
-																if (success) {
-																	setHandSelected(null); // Reset selection after action
-																}
 															}}
 														>
-															Discard Hand Card
+															🎴 Draw Card
+															{userFaceUpCards.length < 2 && deckSize > 0 && isThisPlayerTurn && (
+																<div style={{ fontSize: '0.7rem', marginTop: '4px' }}>
+																	(No stealing yet)
+																</div>
+															)}
 														</button>
+
+														{/* Steal option for first 2 cards */}
+														{userFaceUpCards.length > 0 &&
+															userFaceUpCards.length < 3 &&
+															isThisPlayerTurn &&
+															deckSize > 0 && (
+																<button
+																	style={{
+																		padding: '10px',
+																		fontSize: '0.9rem',
+																		backgroundColor: '#e07b53',
+																	}}
+																	onClick={() => {
+																		gameProvider.executeAction(userGamePlayer.id, {
+																			action: ActionTypes.Draw,
+																			params: {
+																				stealMatching: true,
+																			},
+																		});
+																	}}
+																>
+																	🎴 Draw & Steal
+																</button>
+															)}
+
+														<button
+															disabled={!isThisPlayerTurn || userFaceUpCards.length === 0}
+															style={{
+																padding: '15px',
+																fontSize: '1.1rem',
+																backgroundColor:
+																	isThisPlayerTurn && userFaceUpCards.length > 0
+																		? '#5a8dc7'
+																		: undefined,
+															}}
+															onClick={() => {
+																gameProvider.executeAction(userGamePlayer.id, {
+																	action: ActionTypes.Stop,
+																	params: {},
+																});
+															}}
+														>
+															✋ Stop & Keep Cards
+														</button>
+													</div>
+
+													{/* Turn indicator */}
+													<div
+														style={{
+															textAlign: 'center',
+															padding: '10px',
+															fontWeight: 'bold',
+															color: isThisPlayerTurn ? '#4a9c6d' : '#888',
+														}}
+													>
+														{isThisPlayerTurn
+															? "🎯 It's Your Turn!"
+															: 'Waiting for other players...'}
 													</div>
 												</>
 											)}
@@ -284,32 +288,6 @@ export default function GameBoardPage({ userPlayerId }: BoardPageParams): JSX.El
 													isUserPlayer={userGamePlayer?.id === player.id}
 													playerId={player.id}
 													gamePlayer={player}
-													canSelectAccumulator={handSelected !== null}
-													onSelectAccumulator={(index: number) => {
-														if (!userGamePlayer) return;
-														let success: boolean = false;
-														if (player.id === userGamePlayer.id) {
-															success = gameProvider.executeAction(player.id, {
-																action: ActionTypes.Swap,
-																params: {
-																	sourceHandIndex: handSelected!,
-																	targetAccumulatorIndex: index,
-																},
-															});
-														} else {
-															success = gameProvider.executeAction(userGamePlayer.id, {
-																action: ActionTypes.Attack,
-																params: {
-																	targetPlayerId: player.id,
-																	sourceHandIndex: handSelected!,
-																	targetAccumulatorIndex: index,
-																},
-															});
-														}
-														if (success) {
-															setHandSelected(null); // Reset selection after action
-														}
-													}}
 												/>
 											))}
 										</div>
@@ -330,7 +308,6 @@ export default function GameBoardPage({ userPlayerId }: BoardPageParams): JSX.El
 											<GameLogPanel
 												history={gameProvider.game?.history || []}
 												currentPlayerId={currentPlayerId || undefined}
-												userPlayerId={userPlayerId}
 											/>
 										</div>
 									</div>

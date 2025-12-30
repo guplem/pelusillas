@@ -1,5 +1,7 @@
-import GameAccumulatorCard from '@/app/modules/game/accumulatorCard';
+import ScorePileDisplay from '@/app/modules/game/accumulatorCard';
+import DustBunnyCard from '@/app/modules/game/handCard';
 import { GamePlayer } from '@/app/modules/game/model';
+import { calculateScore, countCardsByValue } from '@/app/modules/game/utils';
 import PlayerCard from '@/app/modules/player/card';
 import { PlayerContext, PlayerContextType } from '@/app/modules/player/manager';
 import { Player } from '@/app/modules/player/model';
@@ -8,8 +10,6 @@ import React, { JSX } from 'react';
 interface GamePlayerZoneProps extends React.HTMLAttributes<HTMLDivElement> {
 	playerId: string;
 	gamePlayer: GamePlayer;
-	canSelectAccumulator: boolean;
-	onSelectAccumulator: (_index: number) => void;
 	isThisPlayerTurn?: boolean;
 	isUserPlayer: boolean;
 }
@@ -17,14 +17,16 @@ interface GamePlayerZoneProps extends React.HTMLAttributes<HTMLDivElement> {
 export default function GamePlayerZone({
 	playerId,
 	gamePlayer,
-	canSelectAccumulator,
-	onSelectAccumulator,
 	isThisPlayerTurn,
 	isUserPlayer,
 	style,
 	...props
 }: GamePlayerZoneProps): JSX.Element {
-	const elementsHeight: string = '100px';
+	const elementsHeight: string = '80px';
+
+	// Group face-up cards by value
+	const groupedCards: Map<number, number> = countCardsByValue(gamePlayer.faceUpCards);
+	const faceUpTotal: number = calculateScore(gamePlayer.faceUpCards);
 
 	return (
 		<>
@@ -74,28 +76,71 @@ export default function GamePlayerZone({
 										borderTopLeftRadius: isUserPlayer ? '0px' : '10px',
 										borderBottomLeftRadius: isUserPlayer ? '0px' : '10px',
 										overflow: 'visible',
-										...style,
 									}}
 								>
+									{/* Player info card */}
 									<PlayerCard
 										showOwnedIndicator={!isUserPlayer}
 										style={{ height: elementsHeight }}
 										player={playerData}
 										gamePlayer={gamePlayer}
 									/>
-									{gamePlayer.accumulators.map((accumulator, index) => (
-										<GameAccumulatorCard
-											onClick={
-												canSelectAccumulator ? (): void => onSelectAccumulator(index) : undefined
-											}
+
+									{/* Score pile display */}
+									<ScorePileDisplay
+										scorePile={gamePlayer.scorePile}
+										style={{ height: elementsHeight }}
+									/>
+
+									{/* Face-up cards */}
+									{gamePlayer.faceUpCards.length > 0 && (
+										<div
 											style={{
-												height: elementsHeight,
-												// cursor is now handled by CSS class
+												display: 'flex',
+												flexDirection: 'column',
+												alignItems: 'center',
+												padding: '5px 10px',
+												backgroundColor: 'rgba(0,0,0,0.1)',
+												borderRadius: '8px',
 											}}
-											key={index}
-											accumulator={accumulator}
-										/>
-									))}
+										>
+											<div style={{ fontSize: '0.7rem', marginBottom: '5px' }}>
+												At Risk: {faceUpTotal} pts
+											</div>
+											<div
+												style={{
+													display: 'flex',
+													flexWrap: 'wrap',
+													gap: '5px',
+													justifyContent: 'center',
+												}}
+											>
+												{Array.from(groupedCards.entries())
+													.sort(([a], [b]) => a - b)
+													.map(([value, count]) => (
+														<DustBunnyCard
+															key={value}
+															value={value}
+															count={count}
+															style={{ width: '45px', height: '45px' }}
+														/>
+													))}
+											</div>
+										</div>
+									)}
+
+									{/* No cards indicator */}
+									{gamePlayer.faceUpCards.length === 0 && gamePlayer.scorePile.length === 0 && (
+										<div
+											style={{
+												padding: '10px',
+												opacity: 0.6,
+												fontStyle: 'italic',
+											}}
+										>
+											No cards yet
+										</div>
+									)}
 								</div>
 							</div>
 						</div>

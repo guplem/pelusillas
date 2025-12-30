@@ -1,93 +1,58 @@
-import { Accumulator, Game, GamePlayer } from '@/app/modules/game/model';
+import { Game, GamePlayer } from '@/app/modules/game/model';
 
 /**
- * Generates a random card number (0-9) based on weighted probabilities.
- * Uses a weighted random selection algorithm where each card can have different chances of being selected.
- *
- * @param chances - Record where keys are card numbers (0-9) and values are their weights.
- *                  Higher weights increase the probability of selection.
- *                  Cards not specified in the record default to weight 1.
- *                  Setting weight to 0 excludes a card from selection.
- * @returns A random card number between 0 and 9 (inclusive)
- *
- * @example
- * // Equal probability for all cards (default behavior)
- * getRandomCard()
- *
- * // Card 5 is twice as likely, card 0 is excluded
- * getRandomCard({ 0: 0, 5: 2 })
+ * Calculates the total score for a player's score pile.
+ * @param scorePile - The array of card values in the player's score pile
+ * @returns The total score
  */
-export const getRandomCard = (chances: Record<number, number> = {}): number => {
-	const cardsPool: number[] = [];
-
-	// Build weighted pool by adding each card multiple times based on its weight
-	for (let cardNumber: number = 0; cardNumber < 10; cardNumber++) {
-		const cardWeight: number = chances[cardNumber] ?? 1; // Default weight is 1 if not specified
-
-		// Add the card to the pool 'cardWeight' number of times
-		for (let weightIndex: number = 0; weightIndex < cardWeight; weightIndex++) {
-			cardsPool.push(cardNumber);
-		}
-	}
-
-	// Select random card from the weighted pool
-	return cardsPool[Math.floor(Math.random() * cardsPool.length)];
+export const calculateScore = (scorePile: number[]): number => {
+	return scorePile.reduce((sum: number, value: number) => sum + value, 0);
 };
 
 /**
- * Calculates the total remaining HP (life points) for a set of accumulators (life storage cards).
- * Used to determine if a player is still alive.
- *
- * @param accumulators - The list of accumulators to sum HP for.
- * @returns The total remaining HP (never negative).
+ * Counts cards of each value in a pile.
+ * @param cards - The array of card values to count
+ * @returns A Map from card value to count
  */
-export const remainingHp = (accumulators: Accumulator[]): number => {
-	let totalHp: number = 0;
-	for (const accumulator of accumulators) {
-		let remaining: number = accumulator.originalValue;
-		for (const attack of accumulator.attacks) {
-			remaining -= attack;
-		}
-		totalHp += Math.max(remaining, 0); // Ensure we don't count negative HP
+export const countCardsByValue = (cards: number[]): Map<number, number> => {
+	const counts: Map<number, number> = new Map();
+	for (const card of cards) {
+		counts.set(card, (counts.get(card) ?? 0) + 1);
 	}
-	return totalHp;
+	return counts;
 };
 
 /**
- * Filters the remaining accumulators that are defending (i.e., have a positive original value).
- * This is useful for identifying which accumulators can still defend against attacks.
- *
- * @param accumulators - The list of accumulators to filter.
- * @returns A list of defending accumulators.
+ * Gets unique values present in a set of cards.
+ * @param cards - The array of card values
+ * @returns Sorted array of unique values
  */
-export const remainingAccumulatorsDefending = (accumulators: Accumulator[]): Accumulator[] => {
-	const defendingAccumulators: Accumulator[] = [];
-	for (const accumulator of accumulators) {
-		if (accumulator.originalValue > 0) {
-			defendingAccumulators.push(accumulator);
-		}
-	}
-	return defendingAccumulators;
+export const getUniqueValues = (cards: number[]): number[] => {
+	return [...new Set(cards)].sort((a: number, b: number) => a - b);
 };
 
 /**
- * Given the index of a remaining accumulator (an accumulator that has not been fully depleted), returns the overall index of that accumulator in the original accumulators array (including those that have been fully depleted).
- *
- * @param allAccumulators - The complete list of accumulators, including those that have been fully depleted.
- * @param remainingAccumulatorIndex - The index of the accumulator in the filtered list of remaining accumulators.
- * @returns The index of the specified remaining accumulator in the original list of accumulators.
+ * Checks if a player already has a card of the given value face up.
+ * @param player - The game player to check
+ * @param value - The card value to look for
+ * @returns True if the player has a face-up card of that value
  */
-// export const getIndexOfAccumulator = (
-// 	allAccumulators: Accumulator[],
-// 	remainingAccumulatorIndex: number,
-// ): number => {
-// 	const remainingAccumulatorsList: Accumulator[] = remainingAccumulators(allAccumulators);
-// 	return allAccumulators.indexOf(remainingAccumulatorsList[remainingAccumulatorIndex]);
-// };
+export const hasCardOfValue = (player: GamePlayer, value: number): boolean => {
+	return player.faceUpCards.includes(value);
+};
+
+/**
+ * Gets all cards of a specific value from a player's face-up cards.
+ * @param player - The game player
+ * @param value - The card value to find
+ * @returns Array of cards with that value
+ */
+export const getCardsOfValue = (player: GamePlayer, value: number): number[] => {
+	return player.faceUpCards.filter((card: number) => card === value);
+};
 
 /**
  * Clones the current game state.
- *
  * @param gameState - The current game state to clone.
  * @returns A deep clone of the game state.
  */
@@ -97,10 +62,58 @@ export const cloneGameState = (gameState: Game): Game => {
 
 /**
  * Returns the current player whose turn it is, based on the game state.
- *
- * @param game - The current game state.
- * @returns The GamePlayer object for the current player.
+ * @param game - The current game state
+ * @returns The GamePlayer whose turn it is
  */
 export const getCurrentPlayer = (game: Game): GamePlayer => {
 	return game.players[game.turn % game.players.length];
+};
+
+/**
+ * Compares two players' scores for tiebreaking.
+ * First compares total score, then uses the tiebreaker rule:
+ * Most cards of value 1, then 2, etc.
+ * @param playerA - First player to compare
+ * @param playerB - Second player to compare
+ * @returns Negative if A wins, positive if B wins, 0 if still tied
+ */
+export const compareScores = (playerA: GamePlayer, playerB: GamePlayer): number => {
+	const scoreA: number = calculateScore(playerA.scorePile);
+	const scoreB: number = calculateScore(playerB.scorePile);
+
+	if (scoreA !== scoreB) {
+		return scoreB - scoreA; // Higher score wins (negative means A wins)
+	}
+
+	// Tiebreaker: compare card counts starting from value 1
+	const countsA: Map<number, number> = countCardsByValue(playerA.scorePile);
+	const countsB: Map<number, number> = countCardsByValue(playerB.scorePile);
+
+	for (let value: number = 1; value <= 10; value++) {
+		const countA: number = countsA.get(value) ?? 0;
+		const countB: number = countsB.get(value) ?? 0;
+		if (countA !== countB) {
+			return countB - countA; // More cards of this value wins
+		}
+	}
+
+	return 0; // Complete tie
+};
+
+/**
+ * Draws a card from the deck.
+ * @param deck - The deck to draw from
+ * @returns The drawn card value, or undefined if deck is empty
+ */
+export const drawFromDeck = (deck: number[]): number | undefined => {
+	return deck.pop();
+};
+
+/**
+ * Checks if the deck is empty (game should end).
+ * @param deck - The deck to check
+ * @returns True if the deck is empty
+ */
+export const isDeckEmpty = (deck: number[]): boolean => {
+	return deck.length === 0;
 };

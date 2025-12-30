@@ -1,6 +1,6 @@
 {
-	"name": "sync-web-app",
-	"description": "",
+	"name": "pelusillas",
+	"description": "A push-your-luck card game inspired by Zirkus Flohcati",
 	"version": "1.0.0",
 	"type": "module",
 	"private": true,

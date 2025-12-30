@@ -1,30 +1,65 @@
-import { Accumulator, Game, GameConfig, GamePlayer } from '@/app/modules/game/model';
-import { getRandomCard } from '@/app/modules/game/utils';
+import { Game, GameConfig, GamePlayer } from '@/app/modules/game/model';
 import { Player } from '@/app/modules/player/model';
 
-export const defaultHandCardsCount: number = 3;
-export const defaultInitialAccumulatorsCount: number = 3;
+/**
+ * Creates the initial deck for Pelusillas.
+ * - Values 1 to 5: 13 cards each (65 cards)
+ * - Values 6 to 10: 9 cards each (45 cards)
+ * - Total: 110 cards
+ */
+export function createDeck(): number[] {
+	const deck: number[] = [];
+
+	// Add 13 cards of each value from 1 to 5
+	for (let value: number = 1; value <= 5; value++) {
+		for (let i: number = 0; i < 13; i++) {
+			deck.push(value);
+		}
+	}
+
+	// Add 9 cards of each value from 6 to 10
+	for (let value: number = 6; value <= 10; value++) {
+		for (let i: number = 0; i < 9; i++) {
+			deck.push(value);
+		}
+	}
+
+	return deck;
+}
 
 /**
- * Factory function to create a new Game data object.
+ * Shuffles an array in place using the Fisher-Yates algorithm.
+ */
+export function shuffleArray<T>(array: T[]): T[] {
+	const shuffled: T[] = [...array];
+	for (let i: number = shuffled.length - 1; i > 0; i--) {
+		const j: number = Math.floor(Math.random() * (i + 1));
+		[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+	}
+	return shuffled;
+}
+
+/**
+ * Factory function to create a new Game data object for Pelusillas.
  * @param players - Array of players to include in the game
  * @param gameConfig - Configuration options for the game
  * @returns A new Game data object
  */
 export function createGame(players: Player[], gameConfig: GameConfig = {}): Game {
-	if (players.length <= 1) throw new Error('Game must have at least two players');
+	if (players.length < 2) throw new Error('Game must have at least two players');
+	if (players.length > 6) throw new Error('Game can have at most six players');
 
-	const shuffledPlayerIds: string[] = shufflePlayerOrder(
-		players.map((player: Player) => player.id),
-	);
-	const gamePlayers: GamePlayer[] = shuffledPlayerIds.map((id: string) =>
-		createGamePlayer(id, gameConfig),
-	);
+	const shuffledPlayerIds: string[] = shuffleArray(players.map((player: Player) => player.id));
+	const gamePlayers: GamePlayer[] = shuffledPlayerIds.map((id: string) => createGamePlayer(id));
+
+	const deck: number[] = shuffleArray(createDeck());
 
 	return {
 		players: gamePlayers,
 		turn: 0,
-		handCardsCount: gameConfig.handCardsCount ?? defaultHandCardsCount,
+		deck: deck,
+		discardPile: [],
+		hasBankedThisTurn: false,
 		winnerId: undefined,
 		history: [],
 		aiDelay: gameConfig.aiDelay ?? 1000,
@@ -32,61 +67,15 @@ export function createGame(players: Player[], gameConfig: GameConfig = {}): Game
 }
 
 /**
- * Factory function to create a new GamePlayer data object.
+ * Factory function to create a new GamePlayer data object for Pelusillas.
+ * Players start with no cards - they will draw on their turn.
  * @param id - Player ID
- * @param gameConfig - Configuration options for the player
  * @returns A new GamePlayer data object
  */
-function createGamePlayer(id: string, gameConfig: GameConfig = {}): GamePlayer {
-	const hand: number[] = [];
-	for (let i: number = 0; i < (gameConfig.handCardsCount ?? defaultHandCardsCount); i++) {
-		hand.push(getRandomCard());
-	}
-
-	const accumulators: Accumulator[] = [];
-	for (
-		let i: number = 0;
-		i < (gameConfig.initialAccumulatorsCount ?? defaultInitialAccumulatorsCount);
-		i++
-	) {
-		accumulators.push(
-			createAccumulator(
-				getRandomCard({
-					0: 0, // Exclude card with value 0 from initial accumulators
-				}),
-			),
-		);
-	}
-
+function createGamePlayer(id: string): GamePlayer {
 	return {
 		id,
-		hand,
-		accumulators,
+		faceUpCards: [],
+		scorePile: [],
 	};
-}
-
-/**
- * Factory function to create a new Accumulator data object.
- * @param value - The original value of the accumulator
- * @returns A new Accumulator data object
- */
-export function createAccumulator(value: number): Accumulator {
-	return {
-		originalValue: value,
-		attacks: [],
-	};
-}
-
-/**
- * Utility function to shuffle player order using Fisher-Yates algorithm.
- * @param playerIds - Array of player IDs to shuffle
- * @returns Shuffled array of player IDs
- */
-function shufflePlayerOrder(playerIds: string[]): string[] {
-	const shuffled: string[] = [...playerIds];
-	for (let i: number = shuffled.length - 1; i > 0; i--) {
-		const j: number = Math.floor(Math.random() * (i + 1));
-		[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-	}
-	return shuffled;
 }

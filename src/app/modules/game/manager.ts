@@ -1,30 +1,26 @@
 import {
-	Accumulator,
 	ActionConfig,
 	ActionTypes,
-	AttackActionHistory,
-	AttackActionParams,
-	BoomActionHistory,
-	BoomActionParams,
-	DiscardActionHistory,
-	DiscardActionParams,
+	BankActionHistory,
+	BustActionHistory,
+	DrawActionHistory,
+	DrawActionParams,
 	Game,
 	GamePlayer,
-	SwapActionHistory,
-	SwapActionParams,
+	StopActionHistory,
 } from '@/app/modules/game/model';
-import { createAccumulator, createGame } from '@/app/modules/game/setup';
+import { createGame } from '@/app/modules/game/setup';
 import {
+	calculateScore,
 	cloneGameState,
+	compareScores,
 	getCurrentPlayer,
-	getRandomCard,
-	remainingHp,
 } from '@/app/modules/game/utils';
 import { Player } from '@/app/modules/player/model';
 import React, { createContext, Dispatch, SetStateAction } from 'react';
 
 export interface GameContextType {
-	game: Game | null; // The current game state, can be null if no game is set
+	game: Game | null;
 	startGame: (_players: Player[]) => void;
 	finishGame: () => void;
 	getCurrentPlayer: (_game: Game) => GamePlayer;
@@ -39,70 +35,66 @@ export const startGame = async (
 	players: Player[],
 ): Promise<void> => {
 	setGame((): Game | null => {
-		console.log(`Starting game with players: ${players.map((p) => p.name).join(', ')}`);
-		return createGame(players, { initialAccumulatorsCount: 3, handCardsCount: 3 });
+		console.log(`Starting Pelusillas game with players: ${players.map((p) => p.name).join(', ')}`);
+		return createGame(players, {});
 	});
 };
 
 export const finishGame = (setGame: Dispatch<SetStateAction<Game | null>>): void => {
 	setGame((): Game | null => {
 		console.log('Finishing game');
-		return null; // Reset the game state
+		return null;
 	});
 };
 
 /**
- * Advances the game to the next player with more than 0 HP.
- *
- * Responsibilities:
- * 1. Checks for win or draw conditions by counting living players (those with HP > 0).
- *    - If no players are alive, sets `winnerId` to `null` (draw).
- *    - If only one player is alive, sets `winnerId` to that player's ID.
- * 2. If the game continues, finds the next player in turn order who is still alive and advances the turn.
- *
- * @param game - The current game state
- * @returns {Game} Updated game state with either a new `turn` number or a `winnerId` if the game has ended.
+ * Advances the game to the next player's turn.
+ * Resets the hasBankedThisTurn flag for the new turn.
  */
 const advanceToNextTurn = (game: Game): Game => {
-	const alivePlayers: GamePlayer[] = game.players.filter(
-		(player: GamePlayer) => remainingHp(player.accumulators) > 0,
-	);
+	return {
+		...game,
+		turn: game.turn + 1,
+		hasBankedThisTurn: false,
+	};
+};
 
-	// Check win conditions
-	if (alivePlayers.length === 0) {
-		// No players alive - draw
-		return { ...game, winnerId: null };
-	} else if (alivePlayers.length === 1) {
-		// Only one player alive - winner
-		return { ...game, winnerId: alivePlayers[0].id };
+/**
+ * Checks if the game should end and determines the winner.
+ * The game ends when the deck is empty.
+ */
+const checkGameEnd = (game: Game): Game => {
+	if (game.deck.length > 0) {
+		return game; // Game continues
 	}
 
-	// Game continues - find next alive player
-	const maxAttempts: number = game.players.length;
-
-	for (let attempt: number = 1; attempt <= maxAttempts; attempt++) {
-		const nextTurn: number = game.turn + attempt;
-		const nextPlayer: GamePlayer = game.players[nextTurn % game.players.length];
-		if (remainingHp(nextPlayer.accumulators) > 0) {
-			return { ...game, turn: nextTurn };
+	// Deck is empty - game ends
+	// All players with face-up cards automatically bank them
+	for (const player of game.players) {
+		if (player.faceUpCards.length > 0) {
+			player.scorePile.push(...player.faceUpCards);
+			player.faceUpCards = [];
 		}
 	}
 
-	console.error('No players with HP found after maximum attempts. This should not be possible.');
-	return game;
+	// Determine winner
+	const sortedPlayers: GamePlayer[] = [...game.players].sort(compareScores);
+
+	// Check for tie at the top
+	if (sortedPlayers.length >= 2) {
+		const topScore: number = calculateScore(sortedPlayers[0].scorePile);
+		const secondScore: number = calculateScore(sortedPlayers[1].scorePile);
+
+		if (topScore === secondScore && compareScores(sortedPlayers[0], sortedPlayers[1]) === 0) {
+			return { ...game, winnerId: null }; // Complete tie
+		}
+	}
+
+	return { ...game, winnerId: sortedPlayers[0].id };
 };
 
- /**
+/**
  * Central function for processing any player action (human or AI).
- *
- * Validates the action, updates the game state if valid, and returns whether the action succeeded.
- * This is the main entry point for executing moves from AI strategies or user input.
- *
- * @param game - The current game state (can be null if not started).
- * @param setGame - React state setter for updating the game state.
- * @param playerId - The ID of the player performing the action.
- * @param actionConfig - The action to execute (type and parameters).
- * @returns {boolean} True if the action was successfully validated and applied, false otherwise.
  */
 export const executeAction = (
 	game: Game | null,
@@ -115,12 +107,8 @@ export const executeAction = (
 		`Executing action: ${actionConfig.action} for player ${playerId} with params: ${JSON.stringify(actionConfig.params)}`,
 	);
 
-	// First try to get the next game state evolving from the provided game state
-	// This way no "update" will be shared accross all clients if the action is not valid
 	if (getNextGameState(game, playerId, actionConfig)) {
-		// If a next game state can be obtained, then do the actual state update
 		setGame((prevGame: Game | null): Game | null => {
-			// Use the "prevGame" to ensure we are working with the latest state and regenerate the next game state
 			const nextGame: Game | null = getNextGameState(prevGame, playerId, actionConfig);
 			if (nextGame) {
 				actionSuccess = true;
@@ -139,70 +127,42 @@ export const executeAction = (
 
 /**
  * Core validation and state transition logic for all actions.
- *
- * Checks if the action is valid in the current game state and, if so, returns the updated game state.
- * If the action is invalid, returns null. This is the main reference for AI developers to understand valid moves.
- *
- * @param game - The current game state (can be null).
- * @param playerId - The ID of the player performing the action.
- * @param actionConfig - The action to validate and apply.
- * @returns {Game | null} The new game state if the action is valid, or null if invalid.
  */
 const getNextGameState = (
 	game: Game | null,
 	playerId: string,
 	actionConfig: ActionConfig,
 ): Game | null => {
-	// Ensure game exists
 	if (!game) {
 		console.error('No game to execute action');
 		return null;
 	}
 
-	// Ensure game is running
 	if (game.winnerId !== undefined) {
 		console.error('Game has already ended, cannot execute actions');
 		return null;
 	}
-	// Ensure is player's turn
+
 	if (getCurrentPlayer(game).id !== playerId) {
 		console.error(`It's not player ${playerId}'s turn to act`);
 		return null;
 	}
 
-	if (!actionConfig.params) {
-		console.error(`Action parameters cannot be null for action: ${actionConfig.action}`);
-		return null;
-	}
-
-	let result: {
-		newGame: Game | null;
-		newHistoryData:
-			| AttackActionHistory
-			| SwapActionHistory
-			| DiscardActionHistory
-			| BoomActionHistory
-			| null;
-	} | null = null;
-
+	let result: Game | null = null;
 	game = cloneGameState(game);
 
-	// Global checks are OK, execute action:
+	// First, check if player needs to bank their cards from previous turn
+	if (!game.hasBankedThisTurn) {
+		game = bankCards(game, playerId);
+	}
+
 	switch (actionConfig.action) {
-		case ActionTypes.Attack: {
-			result = attack(game, playerId, actionConfig.params as AttackActionParams);
+		case ActionTypes.Draw: {
+			result = draw(game, playerId, actionConfig.params as DrawActionParams);
 			break;
 		}
-		case ActionTypes.Swap: {
-			result = swap(game, playerId, actionConfig.params as SwapActionParams);
-			break;
-		}
-		case ActionTypes.Discard: {
-			result = discard(game, playerId, actionConfig.params as DiscardActionParams);
-			break;
-		}
-		case ActionTypes.Boom: {
-			result = boom(game, playerId, actionConfig.params as BoomActionParams);
+		case ActionTypes.Stop: {
+			result = stop(game, playerId);
 			break;
 		}
 		default: {
@@ -211,298 +171,177 @@ const getNextGameState = (
 		}
 	}
 
-	// Post action success checks
-	if (result?.newGame) {
-		// console.log(`Action ${actionConfig.action} executed successfully for player ${playerId}.`);
+	if (result) {
+		result = checkGameEnd(result);
+	}
 
-		for (const player of result.newGame.players) {
-			// Ensure all players have full hands after action
-			while (player.hand.length < result.newGame.handCardsCount) {
-				console.warn(
-					`Player ${player.id} has ${player.hand.length} cards, which is less than ${result.newGame.handCardsCount}. This happened after action ${actionConfig.action}. Adding a random card.`,
-				);
-				player.hand.push(getRandomCard());
-			}
+	return result;
+};
 
-			// Ensure no depleted accumulators remain
-			const indexToRemove: number[] = [];
-			for (let i: number = 0; i < player.accumulators.length; i++) {
-				const accumulator: Accumulator = player.accumulators[i];
-				const hp: number = remainingHp([accumulator]);
-				if (hp <= 0 && accumulator.originalValue > 0) {
-					console.log(`Removing depleted accumulator from player's ${player.id} accumulators.`);
-					indexToRemove.push(i);
-				}
-			}
-			for (let i: number = indexToRemove.length - 1; i >= 0; i--) {
-				player.accumulators.splice(indexToRemove[i], 1);
-			}
-		}
+/**
+ * Banks the player's face-up cards at the start of their turn.
+ */
+const bankCards = (game: Game, playerId: string): Game => {
+	const player: GamePlayer | undefined = game.players.find((p) => p.id === playerId);
 
-		// Register action in history
-		if (result.newHistoryData)
-			result.newGame.history.push({
-				turn: game.turn,
-				action: actionConfig.action,
-				sourcePlayerId: playerId,
-				data: result.newHistoryData,
-			});
-		else
-			console.error(
-				`No history data available for action ${actionConfig.action} executed by player ${playerId}.`,
+	if (!player) {
+		return game;
+	}
+
+	if (player.faceUpCards.length > 0) {
+		const cardsBanked: number = player.faceUpCards.length;
+		const totalValue: number = calculateScore(player.faceUpCards);
+
+		player.scorePile.push(...player.faceUpCards);
+		player.faceUpCards = [];
+
+		const historyEntry: BankActionHistory = {
+			cardsBanked,
+			totalValueBanked: totalValue,
+		};
+
+		game.history.push({
+			turn: game.turn,
+			action: 'bank',
+			sourcePlayerId: playerId,
+			data: historyEntry,
+		});
+
+		console.log(`Player ${playerId} banked ${cardsBanked} cards worth ${totalValue} points.`);
+	}
+
+	return { ...game, hasBankedThisTurn: true };
+};
+
+/**
+ * Handles the Draw action.
+ * Draws a card from the deck, optionally steals matching cards, and checks for bust.
+ */
+const draw = (game: Game, playerId: string, params: DrawActionParams): Game | null => {
+	const player: GamePlayer | undefined = game.players.find((p) => p.id === playerId);
+
+	if (!player) {
+		console.error('Invalid player for draw action');
+		return null;
+	}
+
+	if (game.deck.length === 0) {
+		console.error('Cannot draw - deck is empty');
+		return null;
+	}
+
+	// Draw a card from the deck
+	const drawnCard: number = game.deck.pop()!;
+
+	// Check if this is a duplicate (player already has this value)
+	const hasDuplicate: boolean = player.faceUpCards.includes(drawnCard);
+
+	// Add the drawn card to face-up cards
+	player.faceUpCards.push(drawnCard);
+
+	// Track stolen cards for history
+	const stolenFromPlayers: string[] = [];
+	let stolenCardsCount: number = 0;
+
+	// Handle stealing: mandatory after 2 cards, optional for first 2
+	const shouldSteal: boolean = player.faceUpCards.length > 2 || params.stealMatching === true;
+
+	if (shouldSteal) {
+		// Steal all matching cards from other players
+		for (const otherPlayer of game.players) {
+			if (otherPlayer.id === playerId) continue;
+
+			const matchingCards: number[] = otherPlayer.faceUpCards.filter(
+				(card: number) => card === drawnCard,
 			);
-	}
 
-	return result?.newGame ?? null;
-};
+			if (matchingCards.length > 0) {
+				stolenFromPlayers.push(otherPlayer.id);
+				stolenCardsCount += matchingCards.length;
 
-const attack = (
-	game: Game,
-	playerId: string,
-	{ targetPlayerId, sourceHandIndex, targetAccumulatorIndex }: AttackActionParams,
-): { newGame: Game | null; newHistoryData: AttackActionHistory | null } | null => {
-	if (
-		!targetPlayerId ||
-		sourceHandIndex === null ||
-		sourceHandIndex === undefined ||
-		targetAccumulatorIndex === null ||
-		targetAccumulatorIndex === undefined
-	) {
-		console.error('Invalid parameters for attack action');
-		return null;
-	}
+				// Remove matching cards from other player
+				otherPlayer.faceUpCards = otherPlayer.faceUpCards.filter(
+					(card: number) => card !== drawnCard,
+				);
 
-	game = game;
-	const sourcePlayer: GamePlayer | undefined = game.players.find((p) => p.id === playerId);
-	const targetPlayer: GamePlayer | undefined = game.players.find((p) => p.id === targetPlayerId);
-
-	if (!sourcePlayer) {
-		console.error('Invalid source player for attack action');
-		return null;
-	}
-
-	if (!targetPlayer) {
-		console.error('Invalid target player for attack action');
-		return null;
-	}
-
-	if (sourcePlayer.id === targetPlayerId) {
-		console.error('Cannot attack yourself');
-		return null;
-	}
-
-	if (sourceHandIndex < 0 || sourceHandIndex >= sourcePlayer.hand.length) {
-		console.error('Invalid hand index for attack action');
-		return null;
-	}
-
-	if (targetAccumulatorIndex < 0 || targetAccumulatorIndex >= targetPlayer.accumulators.length) {
-		console.error('Invalid accumulator index for attack action');
-		return null;
-	}
-
-	const sourceCard: number = sourcePlayer.hand[sourceHandIndex];
-	const targetAccumulator: Accumulator | undefined =
-		targetPlayer.accumulators[targetAccumulatorIndex];
-
-	if (!targetAccumulator) {
-		console.error('Target accumulator does not exist');
-		return null;
-	}
-
-	if (targetAccumulator.attacks.length > 0 && sourceCard == 0) {
-		console.error(
-			'Cannot attack an accumulator that has already been attacked with a card of value 0, it would not change anything',
-		);
-		return null;
-	}
-
-	if (targetAccumulator.originalValue == 0) {
-		console.error('Cannot attack an accumulator with original value 0');
-		return null;
-	}
-
-	const targetAccumulatorRemainingHealth: number = remainingHp([targetAccumulator]);
-
-	if (targetAccumulatorRemainingHealth < sourceCard) {
-		console.error("Cannot decrease an accumulator's value below zero");
-		return null;
-	}
-
-	const obtainedExtraAccumulator: boolean =
-		targetAccumulator.originalValue === sourceCard && targetAccumulator.attacks.length === 0;
-
-	// STORE STATE IN HISTORY before performing the action
-	const historyEntry: AttackActionHistory = {
-		targetPlayerId: targetPlayerId,
-		sourceHandValue: sourceCard,
-		targetAccumulatorValue: targetAccumulatorRemainingHealth,
-		obtainedExtraAccumulator: null,
-	};
-
-	// PERFORM THE ACTION
-	if (obtainedExtraAccumulator) {
-		const randomCard: number = getRandomCard();
-		sourcePlayer.accumulators.push(createAccumulator(randomCard)); // Add a new accumulator
-		historyEntry.obtainedExtraAccumulator = randomCard;
-	}
-	targetAccumulator.attacks.push(sourceCard);
-	sourcePlayer.hand[sourceHandIndex] = getRandomCard(); // Replace the used card with a new random card
-	game = advanceToNextTurn(game);
-
-	return { newGame: game, newHistoryData: historyEntry };
-};
-
-const swap = (
-	game: Game,
-	playerId: string,
-	{ sourceHandIndex, targetAccumulatorIndex }: SwapActionParams,
-): { newGame: Game | null; newHistoryData: SwapActionHistory | null } | null => {
-	if (
-		sourceHandIndex === null ||
-		sourceHandIndex === undefined ||
-		targetAccumulatorIndex === null ||
-		targetAccumulatorIndex === undefined
-	) {
-		console.error('Invalid parameters for swap action');
-		return null;
-	}
-
-	game = game;
-	const sourcePlayer: GamePlayer | undefined = game.players.find((p) => p.id === playerId);
-
-	if (!sourcePlayer) {
-		console.error('Invalid source player for swap action');
-		return null;
-	}
-
-	if (sourceHandIndex < 0 || sourceHandIndex >= sourcePlayer.hand.length) {
-		console.error('Invalid hand index for swap action');
-		return null;
-	}
-
-	if (targetAccumulatorIndex < 0 || targetAccumulatorIndex >= sourcePlayer.accumulators.length) {
-		console.error('Invalid accumulator index for swap action');
-		return null;
-	}
-
-	const sourceCard: number = sourcePlayer.hand[sourceHandIndex];
-	const targetAccumulator: Accumulator | undefined =
-		sourcePlayer.accumulators[targetAccumulatorIndex];
-
-	if (!targetAccumulator) {
-		console.error('Target accumulator does not exist');
-		return null;
-	}
-
-	if (targetAccumulator.attacks.length > 0) {
-		console.error('Cannot swap with an accumulator that has attacks');
-		return null;
-	}
-
-	// STORE STATE IN HISTORY before performing the action
-	const historyEntry: SwapActionHistory = {
-		sourceHandValue: sourceCard,
-		targetAccumulatorValue: targetAccumulator.originalValue,
-	};
-
-	// PERFORM THE ACTION
-	sourcePlayer.accumulators[targetAccumulatorIndex] = createAccumulator(sourceCard);
-	sourcePlayer.hand[sourceHandIndex] = targetAccumulator.originalValue;
-
-	return { newGame: game, newHistoryData: historyEntry };
-};
-
-const discard = (
-	game: Game,
-	playerId: string,
-	{ sourceHandIndex }: DiscardActionParams,
-): { newGame: Game | null; newHistoryData: DiscardActionHistory | null } | null => {
-	if (sourceHandIndex === null || sourceHandIndex === undefined) {
-		console.error('Invalid parameters for discard action');
-		return null;
-	}
-
-	game = game;
-	const sourcePlayer: GamePlayer | undefined = game.players.find((p) => p.id === playerId);
-
-	if (!sourcePlayer) {
-		console.error('Invalid source player for discard action');
-		return null;
-	}
-
-	if (sourceHandIndex < 0 || sourceHandIndex >= sourcePlayer.hand.length) {
-		console.error('Invalid hand index for discard action');
-		return null;
-	}
-
-	const sourceCard: number = sourcePlayer.hand[sourceHandIndex];
-
-	// STORE STATE IN HISTORY before performing the action
-	const historyEntry: DiscardActionHistory = {
-		sourceHandValue: sourceCard,
-	};
-
-	// PERFORM THE ACTION
-	sourcePlayer.hand[sourceHandIndex] = getRandomCard();
-	game = advanceToNextTurn(game);
-
-	return { newGame: game, newHistoryData: historyEntry };
-};
-
-const boom = (
-	game: Game,
-	playerId: string,
-	{ targetValue }: BoomActionParams,
-): { newGame: Game | null; newHistoryData: BoomActionHistory | null } | null => {
-	if (targetValue === null || targetValue === undefined) {
-		console.error('Invalid parameters for boom action');
-		return null;
-	}
-
-	game = game;
-	const sourcePlayer: GamePlayer | undefined = game.players.find((p) => p.id === playerId);
-
-	if (!sourcePlayer) {
-		console.error('Invalid source player for boom action');
-		return null;
-	}
-
-	if (targetValue <= 0) {
-		console.error('Invalid target value for boom action');
-		return null;
-	}
-
-	if (!sourcePlayer.hand.every((card: number) => card === 0)) {
-		console.error('Player must have all hand cards with value 0 to execute boom action');
-		return null;
-	}
-
-	let accumulatorsDestroyed: number = 0;
-
-	// PERFORM THE ACTION and count destroyed accumulators
-	for (const player of game.players) {
-		for (let accIndex: number = 0; accIndex < player.accumulators.length; accIndex++) {
-			const accumulator: Accumulator = player.accumulators[accIndex];
-			const currentValue: number = remainingHp([accumulator]);
-
-			// If the accumulator's current value matches the target value, destroy it
-			if (currentValue === targetValue) {
-				player.accumulators[accIndex].attacks.push(targetValue);
-				accumulatorsDestroyed++;
+				// Add stolen cards to current player
+				player.faceUpCards.push(...matchingCards);
 			}
 		}
 	}
 
-	// STORE STATE IN HISTORY after performing the action to capture results
-	const historyEntry: BoomActionHistory = {
-		targetValue: targetValue,
-		accumulatorsDestroyedQuantity: accumulatorsDestroyed,
+	// Record draw action in history
+	const drawHistoryEntry: DrawActionHistory = {
+		drawnCardValue: drawnCard,
+		stolenFromPlayers,
+		stolenCardsCount,
 	};
 
-	// Replace all hand cards with new random cards
-	sourcePlayer.hand = sourcePlayer.hand.map(() => getRandomCard());
-	game = advanceToNextTurn(game);
+	game.history.push({
+		turn: game.turn,
+		action: ActionTypes.Draw,
+		sourcePlayerId: playerId,
+		data: drawHistoryEntry,
+	});
 
-	return { newGame: game, newHistoryData: historyEntry };
+	// Check for bust condition: duplicate AND 3+ cards face up
+	if (hasDuplicate && player.faceUpCards.length >= 3) {
+		// Player busts - loses all face-up cards
+		const cardsLost: number = player.faceUpCards.length;
+		const totalValueLost: number = calculateScore(player.faceUpCards);
+
+		const bustHistoryEntry: BustActionHistory = {
+			duplicateValue: drawnCard,
+			cardsLost,
+			totalValueLost,
+		};
+
+		game.history.push({
+			turn: game.turn,
+			action: 'bust',
+			sourcePlayerId: playerId,
+			data: bustHistoryEntry,
+		});
+
+		// Move all face-up cards to discard pile
+		game.discardPile.push(...player.faceUpCards);
+		player.faceUpCards = [];
+
+		console.log(
+			`Player ${playerId} busted with duplicate ${drawnCard}! Lost ${cardsLost} cards worth ${totalValueLost} points.`,
+		);
+
+		// End turn after bust
+		game = advanceToNextTurn(game);
+	}
+
+	return game;
+};
+
+/**
+ * Handles the Stop action.
+ * Player ends their turn, keeping their face-up cards to bank next turn.
+ */
+const stop = (game: Game, playerId: string): Game | null => {
+	const player: GamePlayer | undefined = game.players.find((p) => p.id === playerId);
+
+	if (!player) {
+		console.error('Invalid player for stop action');
+		return null;
+	}
+
+	const historyEntry: StopActionHistory = {
+		cardsKept: player.faceUpCards.length,
+	};
+
+	game.history.push({
+		turn: game.turn,
+		action: ActionTypes.Stop,
+		sourcePlayerId: playerId,
+		data: historyEntry,
+	});
+
+	console.log(`Player ${playerId} stopped with ${player.faceUpCards.length} cards.`);
+
+	return advanceToNextTurn(game);
 };

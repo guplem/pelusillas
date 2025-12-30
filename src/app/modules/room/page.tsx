@@ -132,7 +132,7 @@ export default function RoomPage(): JSX.Element {
 				</a>
 				{' - '}
 				<a
-					href='https://github.com/guplem/boom'
+					href='https://github.com/guplem/pelusillas'
 					target='_blank'
 					rel='noopener noreferrer'
 					style={{ textDecoration: 'none' }}

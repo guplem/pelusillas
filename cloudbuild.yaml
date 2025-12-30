@@ -48,4 +48,4 @@ options:
   logging: CLOUD_LOGGING_ONLY
 
 substitutions:
-  _SERVICE_NAME: new-service-name # Replace with your service name
+  _SERVICE_NAME: pelusillas-card-game # Replace with your service name

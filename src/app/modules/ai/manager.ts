@@ -1,7 +1,7 @@
 import { Scenario } from '@/app/modules/ai/model';
 import { strategiesList } from '@/app/modules/ai/strategies';
 import { executeAction } from '@/app/modules/game/manager';
-import { ActionConfig, ActionTypes, Game } from '@/app/modules/game/model';
+import { ActionConfig, ActionTypes, Game, GamePlayer } from '@/app/modules/game/model';
 import { getCurrentPlayer } from '@/app/modules/game/utils';
 import { Player } from '@/app/modules/player/model';
 import { Dispatch, SetStateAction } from 'react';
@@ -11,15 +11,10 @@ const delay = (ms: number): Promise<void> => {
 };
 
 /**
- * Main AI execution loop for a player's turn.
+ * Main AI execution loop for a player's turn in Pelusillas.
  *
  * Selects and runs the configured AI strategy for the current player, attempting up to `maxAttempts` times
- * to produce a valid action. If all attempts fail, falls back to a safe discard action.
- *
- * @param userId - The ID of the browser session user. Used to ensure that only the user who "owns" the AI player can trigger its move, preventing multiple clients from controlling the same AI.
- * @param game - The current game state.
- * @param players - Array of all players in the game.
- * @param setGame - React state setter for updating the game state.
+ * to produce a valid action. If all attempts fail, falls back to a safe action.
  */
 export const executeAiStrategy = async (
 	userId: string,
@@ -47,9 +42,10 @@ export const executeAiStrategy = async (
 	const scenario: Scenario = {
 		board: game.players.map((player) => ({
 			playerId: player.id,
-			accumulators: player.accumulators,
+			faceUpCards: player.faceUpCards,
+			scorePile: player.scorePile,
 		})),
-		playerHand: game.players.find((p) => p.id === currentPlayerId)?.hand || [],
+		deckSize: game.deck.length,
 		turn: game.turn,
 		playerId: currentPlayerId,
 		history: game.history,
@@ -61,7 +57,7 @@ export const executeAiStrategy = async (
 	const strategy = strategiesList.find((s) => s.name === currentPlayer.aiStrategy);
 	if (!strategy) {
 		console.error(`AI strategy "${currentPlayer.aiStrategy}" not found.`);
-		return executeFallbackAction(game, scenario, setGame, currentPlayer);
+		return executeFallbackAction(game, setGame, currentPlayer);
 	}
 
 	const maxAttempts: number = strategy.maxAttempts || 10;
@@ -77,32 +73,39 @@ export const executeAiStrategy = async (
 	}
 
 	console.warn(`AI strategy could not produce a valid action after ${maxAttempts} attempts.`);
-	return executeFallbackAction(game, scenario, setGame, currentPlayer);
+	return executeFallbackAction(game, setGame, currentPlayer);
 };
 
 /**
- * Executes a fallback action (discard) for the AI player if their strategy fails to produce a valid move.
- * This is a fail-safe to ensure the game can always proceed.
- *
- * @param game - The current game state.
- * @param scenario - The scenario snapshot for the AI player.
- * @param setGame - React state setter for updating the game state.
- * @param currentPlayer - The player object for the AI-controlled player.
+ * Executes a fallback action for the AI player if their strategy fails.
+ * In Pelusillas, the fallback is to draw a card (or stop if too risky).
  */
 const executeFallbackAction = (
 	game: Game,
-	scenario: Scenario,
 	setGame: Dispatch<SetStateAction<Game | null>>,
 	currentPlayer: Player,
 ): void => {
-	console.log(`Executing fallback action (discarding a card) for player ${currentPlayer.id}.`);
+	console.log(`Executing fallback action for player ${currentPlayer.id}.`);
 
-	const fallbackAction: ActionConfig = {
-		action: ActionTypes.Discard,
-		params: {
-			sourceHandIndex: Math.floor(Math.random() * scenario.playerHand.length),
-		},
-	};
+	const currentGamePlayer: GamePlayer | undefined = game.players.find(
+		(p) => p.id === currentPlayer.id,
+	);
+	const faceUpCount: number = currentGamePlayer?.faceUpCards.length ?? 0;
 
-	executeAction(game, setGame, currentPlayer.id, fallbackAction);
+	// If player has many cards, stop to be safe
+	const fallbackAction: ActionConfig =
+		faceUpCount >= 5
+			? {
+					action: ActionTypes.Stop,
+					params: {},
+				}
+			: {
+					action: ActionTypes.Draw,
+					params: { stealMatching: true },
+				};
+
+	const success: boolean = executeAction(game, setGame, currentPlayer.id, fallbackAction);
+	if (!success) {
+		console.error(`Fallback action also failed for player ${currentPlayer.id}.`);
+	}
 };

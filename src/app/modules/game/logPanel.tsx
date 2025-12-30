@@ -1,9 +1,10 @@
 import {
 	ActionTypes,
-	AttackActionHistory,
-	BoomActionHistory,
+	BankActionHistory,
+	BustActionHistory,
+	DrawActionHistory,
 	HistoryElement,
-	SwapActionHistory,
+	StopActionHistory,
 } from '@/app/modules/game/model';
 import { PlayerContext, PlayerContextType } from '@/app/modules/player/manager';
 import { Player } from '@/app/modules/player/model';
@@ -19,7 +20,8 @@ interface ProcessedLogEntry {
 	player: string;
 	playerColor?: string;
 	details: string;
-	isUserAttacked?: boolean;
+	icon?: string;
+	isBust?: boolean;
 }
 
 /**
@@ -28,7 +30,7 @@ interface ProcessedLogEntry {
 interface GameLogProps {
 	history: HistoryElement[];
 	currentPlayerId?: string;
-	userPlayerId?: string;
+	_userPlayerId?: string;
 }
 
 /**
@@ -42,7 +44,6 @@ interface GroupedLogEntries {
 export const GameLogPanel: React.FC<GameLogProps> = ({
 	history,
 	currentPlayerId,
-	userPlayerId,
 }: GameLogProps) => {
 	return (
 		<PlayerContext.Consumer>
@@ -81,66 +82,71 @@ export const GameLogPanel: React.FC<GameLogProps> = ({
 					const baseId: string = `${element.turn}-${element.action}-${index}`;
 
 					switch (element.action) {
-						case ActionTypes.Attack: {
-							const data: AttackActionHistory = element.data as AttackActionHistory;
-							const targetInfo: {
-								name: string;
-								color?: string;
-							} = getPlayerInfo(data.targetPlayerId);
-							const gainedExtraAccumulator: string =
-								data.obtainedExtraAccumulator != null
-									? ` and gained an extra accumulator with value ${data.obtainedExtraAccumulator}`
-									: '';
-							const remainingHp: number = data.targetAccumulatorValue - data.sourceHandValue;
-							const actionText: string = remainingHp <= 0 ? 'Destroyed' : 'Attacked';
-							const remainingHpMessage: string =
-								remainingHp > 0 ? ` (remaining HP: ${remainingHp})` : '';
+						case ActionTypes.Draw: {
+							const data: DrawActionHistory = element.data as DrawActionHistory;
+							const hasStolen: boolean = data.stolenFromPlayers.length > 0;
+							if (hasStolen) {
+								const victimInfo: { name: string; color?: string } = getPlayerInfo(
+									data.stolenFromPlayers[0],
+								);
+								return {
+									id: baseId,
+									turn: element.turn,
+									action: ActionTypes.Draw,
+									player: playerInfo.name,
+									playerColor: playerInfo.color,
+									details: `Stole a ${data.drawnCardValue} from ${victimInfo.name}`,
+									icon: '🎯',
+								};
+							}
 							return {
 								id: baseId,
 								turn: element.turn,
-								action: ActionTypes.Attack,
+								action: ActionTypes.Draw,
 								player: playerInfo.name,
 								playerColor: playerInfo.color,
-								details: `${actionText} ${targetInfo.name}'s accumulator with a ${data.sourceHandValue} on an accumulator with value ${data.targetAccumulatorValue}${gainedExtraAccumulator}${remainingHpMessage}`,
-								isUserAttacked: data.targetPlayerId === userPlayerId, // Check if user was targeted
+								details: `Drew a ${data.drawnCardValue} from the deck`,
+								icon: '🃏',
 							};
 						}
 
-						case ActionTypes.Swap: {
-							const data: SwapActionHistory = element.data as SwapActionHistory;
+						case ActionTypes.Stop: {
+							const data: StopActionHistory = element.data as StopActionHistory;
 							return {
 								id: baseId,
 								turn: element.turn,
-								action: ActionTypes.Swap,
+								action: ActionTypes.Stop,
 								player: playerInfo.name,
 								playerColor: playerInfo.color,
-								details: `Replaced an accumulator with value ${data.targetAccumulatorValue} with a card of value ${data.sourceHandValue}`,
+								details: `Stopped and kept ${data.cardsKept} cards`,
+								icon: '✋',
 							};
 						}
 
-						case ActionTypes.Discard: {
+						case 'bank': {
+							const data: BankActionHistory = element.data as BankActionHistory;
 							return {
 								id: baseId,
 								turn: element.turn,
-								action: ActionTypes.Discard,
+								action: undefined,
 								player: playerInfo.name,
 								playerColor: playerInfo.color,
-								details: `Discarded a card`,
+								details: `Banked ${data.cardsBanked} cards worth ${data.totalValueBanked} points`,
+								icon: '💰',
 							};
 						}
 
-						case ActionTypes.Boom: {
-							const data: BoomActionHistory = element.data as BoomActionHistory;
-
-							const accumulatorText: string =
-								data.accumulatorsDestroyedQuantity === 1 ? 'accumulator' : 'accumulators';
+						case 'bust': {
+							const data: BustActionHistory = element.data as BustActionHistory;
 							return {
 								id: baseId,
 								turn: element.turn,
-								action: ActionTypes.Boom,
+								action: undefined,
 								player: playerInfo.name,
 								playerColor: playerInfo.color,
-								details: `Boomed the ${data.targetValue} and destroyed ${data.accumulatorsDestroyedQuantity} ${accumulatorText}`,
+								details: `BUST! Drew a duplicate ${data.duplicateValue} and lost ${data.cardsLost} cards`,
+								icon: '💥',
+								isBust: true,
 							};
 						}
 
@@ -152,11 +158,12 @@ export const GameLogPanel: React.FC<GameLogProps> = ({
 								player: playerInfo.name,
 								playerColor: playerInfo.color,
 								details: `Performed an unknown action`,
+								icon: '❓',
 							};
 					}
 				};
 
-				// Process and sort entries (newest first) and limit to maxEntries
+				// Process and sort entries (newest first)
 				const processedEntries: ProcessedLogEntry[] = history
 					.map((element: HistoryElement, index: number) => processHistoryElement(element, index))
 					.reverse();
@@ -182,21 +189,34 @@ export const GameLogPanel: React.FC<GameLogProps> = ({
 				const groupedEntries: GroupedLogEntries[] = groupEntriesByTurn(processedEntries);
 
 				/**
-				 * Generate background style for log entry based on player color
+				 * Generate background style for log entry based on player color and action type
 				 */
-				const getPlayerBackgroundStyle = (playerColor?: string): React.CSSProperties => {
-					if (!playerColor) {
-						return {};
-					}
-
-					// Apply player color with opacity for better readability
-					return {
-						backgroundColor: `${playerColor}40`, // 25% opacity
-						border: `2px solid ${playerColor}`,
+				const getEntryStyle = (entry: ProcessedLogEntry): React.CSSProperties => {
+					const baseStyle: React.CSSProperties = {
 						borderRadius: '6px',
 						margin: '4px 0',
 						padding: '8px',
-						boxShadow: `0 1px 3px ${playerColor}20`, // Subtle shadow with player color
+					};
+
+					// Special styling for bust action
+					if (entry.isBust) {
+						return {
+							...baseStyle,
+							backgroundColor: 'rgba(220, 53, 69, 0.3)',
+							border: '2px solid #dc3545',
+							boxShadow: '0 1px 3px rgba(220, 53, 69, 0.3)',
+						};
+					}
+
+					if (!entry.playerColor) {
+						return baseStyle;
+					}
+
+					return {
+						...baseStyle,
+						backgroundColor: `${entry.playerColor}40`,
+						border: `2px solid ${entry.playerColor}`,
+						boxShadow: `0 1px 3px ${entry.playerColor}20`,
 					};
 				};
 
@@ -221,14 +241,7 @@ export const GameLogPanel: React.FC<GameLogProps> = ({
 										fontWeight: 'bold',
 									}}
 								>
-									<h3
-										style={{
-											margin: 0,
-											// color: currentPlayerInfo.color || 'inherit',
-										}}
-									>
-										{currentPlayerInfo.name}'s Turn
-									</h3>
+									<h3 style={{ margin: 0 }}>🐰 {currentPlayerInfo.name}'s Turn</h3>
 								</div>
 							)}
 
@@ -239,7 +252,6 @@ export const GameLogPanel: React.FC<GameLogProps> = ({
 							) : (
 								<div className='game-log__list' role='log' aria-label='Game history'>
 									{groupedEntries.map((group: GroupedLogEntries) => {
-										// Get player name from the first entry in the turn (since all entries in a turn belong to the same player)
 										const turnPlayerName: string =
 											group.entries.length > 0 ? group.entries[0].player : 'Unknown Player';
 
@@ -250,43 +262,11 @@ export const GameLogPanel: React.FC<GameLogProps> = ({
 												</h4>
 												<div className='game-log__turn-entries'>
 													{group.entries.map((entry: ProcessedLogEntry) => (
-														<div
-															key={entry.id}
-															role='listitem'
-															style={getPlayerBackgroundStyle(entry.playerColor)}
-														>
+														<div key={entry.id} role='listitem' style={getEntryStyle(entry)}>
 															<div className='log-entry__content'>
 																<div className='log-entry__details'>
-																	{entry.action == ActionTypes.Boom && (
-																		<div
-																			style={{
-																				flexDirection: 'column',
-																				display: 'flex',
-																				alignItems: 'center',
-																				marginBottom: '6px',
-																			}}
-																		>
-																			<img
-																				src='/boom-text.png'
-																				alt='Boom Action'
-																				style={{
-																					maxHeight: '50px',
-																				}}
-																			/>
-																		</div>
-																	)}
-																	{entry.isUserAttacked && (
-																		<span>
-																			<img
-																				src='/favicon.png'
-																				alt='Boom Action'
-																				style={{
-																					maxHeight: '17px',
-																				}}
-																			/>
-																		</span>
-																	)}
-																	<span className='log-entry__description'> {entry.details}</span>
+																	<span style={{ marginRight: '8px' }}>{entry.icon}</span>
+																	<span className='log-entry__description'>{entry.details}</span>
 																</div>
 															</div>
 														</div>

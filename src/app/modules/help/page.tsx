@@ -1,7 +1,7 @@
-import { JSX } from 'react';
+﻿import { JSX } from 'react';
 
 /**
- * HelpPage renders the digital rules and interface guide for Boom.
+ * HelpPage renders the digital rules and interface guide for Pelusillas.
  * This page is accessible via /help and is intended for new and returning players.
  */
 export default function HelpPage(): JSX.Element {
@@ -33,158 +33,167 @@ export default function HelpPage(): JSX.Element {
 							window.open('/help/physical', '_blank', 'noopener');
 						}}
 					>
-						📖 Rules to play physically
+						Rules to play physically
 					</button>
 				</div>
-				<h1>🎴 How to Play Boom</h1>
+				<h1> How to Play Pelusillas</h1>
 				<p>
-					Welcome to the digital version of Boom! Here’s everything you need to know to play the
-					game.
+					Welcome to Pelusillas! A push-your-luck card game where you collect dust bunnies to score
+					points. Draw cards carefullyget too greedy and you might bust!
 				</p>
-				<h2>🎯 Objective</h2>
+
+				<h2> Objective</h2>
 				<p>
-					The goal is to be the <strong>last player standing</strong> by eliminating others. You do
-					this by reducing to 0 all of their life storage cards (called "accumulators").
+					Collect the most points by banking cards to your score pile. The player with the highest
+					score when the deck runs out wins!
 				</p>
-				<h2>🔢 Card Values</h2>
+
+				<h2> The Deck</h2>
 				<ul>
 					<li>
-						<strong>0 to 10:</strong> Cards have a value from 0 to 10.
+						<strong>110 cards total</strong> with values from 1 to 10
+					</li>
+					<li>
+						<strong>Values 1-5:</strong> 13 cards each (65 cards)
+					</li>
+					<li>
+						<strong>Values 6-10:</strong> 9 cards each (45 cards)
 					</li>
 				</ul>
-				<p>
-					A card's value represents its attack strength when played from your hand, or the maximum
-					life an accumulator can hold when on the board.
-				</p>
-				<p>
-					Cards with a value of 0 are kind of special cards and are required for the "Boom" action.
-				</p>
+				<p>Higher value cards are rarer but worth more points!</p>
+
 				<h2>🕹️ Game Interface</h2>
 				<ul>
 					<li>
-						<strong>Player Control Panel (Left):</strong> This is your area. It shows your hand,
-						action controls and your stats:
+						<strong>Player Control Panel (Left):</strong> Your area showing:
 						<ul style={{ marginTop: '4px', marginBottom: '4px' }}>
 							<li>
-								<strong>Defenses:</strong> The amount of accumulators with more than 0 HP.
+								<strong>Banked Score:</strong> Points safely in your score pile
 							</li>
 							<li>
-								<strong>HP:</strong> The sum of the health of all your accumulators.
+								<strong>At Risk:</strong> Face-up cards that will be lost if you bust
 							</li>
 							<li>
-								<strong>Acc:</strong> Your accumulator count.
+								<strong>Deck Size:</strong> Cards remaining in the draw pile
+							</li>
+							<li>
+								<strong>Action Buttons:</strong> Draw, Steal, or Stop
 							</li>
 						</ul>
 					</li>
 					<li>
-						<strong>Game Board (Center):</strong> Displays all players and their accumulators. Your
-						row is highlighted and it has your color.
+						<strong>Game Board (Center):</strong> Shows all players, their banked scores, and
+						face-up cards. Your row is highlighted with your color.
 					</li>
 					<li>
-						<strong>Game Log (Right):</strong> Shows a history of all actions taken in the game,
-						turn by turn and the name of current player's turn.
+						<strong>Game Log (Right):</strong> History of all actions and current turn indicator.
 					</li>
 				</ul>
-				<h2>🔄 Game Turn</h2>
+
+				<h2> Turn Structure</h2>
+
+				<h3>1. Banking Phase (Automatic)</h3>
 				<p>
-					On your turn, you must perform some actions. The game will automatically progress to the
-					next player after your action. The main actions are: Swap, Attack, Boom, or Discard.
+					At the start of your turn, any face-up cards from your previous turn are automatically
+					moved to your score pile. These points are now safe!
 				</p>
-				<h3>Swap</h3>
+
+				<h3>2. Action Phase</h3>
+				<p>
+					You must take at least one action. You can continue drawing until you choose to stop or
+					bust.
+				</p>
+
+				<h4>🃏 Draw</h4>
+				<ul>
+					<li>Draw the top card from the deck and add it face-up in front of you.</li>
+					<li>
+						<strong>Bust Rule:</strong> If the card matches the value of any card you already have
+						face-up, AND you have 3 or more face-up cards after drawing, you BUST! All your face-up
+						cards go to the discard pile.
+					</li>
+				</ul>
+
+				<h4> Steal (Optional)</h4>
 				<ul>
 					<li>
-						<strong>Objective:</strong> Swap a card from your hand with one of your own accumulator
-						cards on the board.
+						Instead of drawing from the deck, you may steal one face-up card from another player.
 					</li>
 					<li>
-						<strong>How to do it:</strong> Click a card in your hand to select it, then click one of
-						your own accumulator cards on the board.
+						<strong>First Two Cards:</strong> Drawing is mandatory for your first two cards each
+						turn (you cannot steal).
 					</li>
 					<li>
-						<strong>Rules:</strong> You can only swap with accumulators that have not been attacked
-						yet.
+						<strong>After Two Cards:</strong> Stealing becomes optional. You can choose to draw from
+						deck or steal from an opponent.
 					</li>
-					<li>
-						<strong>After the action:</strong> This is the only action that does not end your turn,
-						allowing you to perform another action afterward.
-					</li>
+					<li>The same bust rules apply when stealing!</li>
 				</ul>
-				<h3>Attack</h3>
+
+				<h4> Stop</h4>
+				<ul>
+					<li>You may stop at any time after drawing at least one card.</li>
+					<li>
+						Your face-up cards remain in front of you and will be banked at the start of your next
+						turn.
+					</li>
+					<li>Play passes to the next player.</li>
+				</ul>
+
+				<h2> Bust!</h2>
+				<p>
+					You bust when you draw or steal a card that matches the value of a card you already have
+					face-up, AND you have 3 or more face-up cards total. When you bust:
+				</p>
+				<ul>
+					<li>All your face-up cards go to the discard pile</li>
+					<li>You score nothing this turn</li>
+					<li>Your turn ends immediately</li>
+				</ul>
+				<p>
+					<strong>Note:</strong> Having 2 cards with the same value is safe! You only bust if you
+					have 3+ cards total when you draw a duplicate.
+				</p>
+
+				<h2> Scoring</h2>
+				<p>
+					Each card in your score pile is worth its face value. Add up all card values to get your
+					total score.
+				</p>
+
+				<h2> End of Game</h2>
+				<p>The game ends when the deck runs out. When this happens:</p>
+				<ul>
+					<li>The current turn completes</li>
+					<li>All remaining face-up cards are banked to score piles</li>
+					<li>Final scores are calculated</li>
+				</ul>
+
+				<h3>Tiebreaker</h3>
+				<p>
+					If two or more players have the same score, the player with the most unique card values in
+					their score pile wins!
+				</p>
+
+				<h2> Strategy Tips</h2>
 				<ul>
 					<li>
-						<strong>Objective:</strong> Attack an opponent's accumulator card to reduce its HP or
-						destroy it.
+						<strong>Risk Management:</strong> The more face-up cards you have, the higher your
+						chance of busting. Know when to stop!
 					</li>
 					<li>
-						<strong>How to do it:</strong> Select a card from your hand by clicking it, then click
-						an opponent's accumulator card on the board.
+						<strong>Card Counting:</strong> Pay attention to what values have been played. Higher
+						values are rarer and safer to collect.
 					</li>
 					<li>
-						<strong>Rules:</strong> The value of your attacking card must be less than or equal to
-						the accumulator's current HP (you cannot reduce HP below zero). You cannot attack
-						accumulators with an original value of 0.
+						<strong>Stealing:</strong> Steal high-value cards from opponents when possible, but be
+						careful of duplicates!
 					</li>
 					<li>
-						<strong>After the action:</strong> The card you used to attack is lost, and your turn
-						ends immediately.
-					</li>
-					<li>
-						<strong>Special:</strong> <em>Extra Accumulator:</em> If you destroy an accumulator with
-						a single attack (your attack is the first to that accumulator and your card's value
-						matches the accumulator's original value), you gain a new random accumulator card on
-						your board.
+						<strong>Two is Safe:</strong> You can safely have 2 cards of the same value. The bust
+						only triggers with 3+ total cards.
 					</li>
 				</ul>
-				<h3>Boom</h3>
-				<ul>
-					<li>
-						<strong>Objective:</strong> Destroy all accumulators on the board with a specific HP
-						value.
-					</li>
-					<li>
-						<strong>How to do it:</strong> You can only use Boom if your entire hand consists of
-						cards with value 0. Enter a number from 1-9 in the input field in your control panel and
-						click the "Boom" button.
-					</li>
-					<li>
-						<strong>Rules:</strong> All accumulators on the board (including your own!) with a
-						current HP exactly matching the number you entered are instantly destroyed.
-					</li>
-					<li>
-						<strong>After the action:</strong> You lose all cards in your hand, and your turn ends
-						immediately.
-					</li>
-				</ul>
-				<h3>Discard</h3>
-				<ul>
-					<li>
-						<strong>Objective:</strong> Discard a card from your hand if you cannot or do not want
-						to perform any of the above actions.
-					</li>
-					<li>
-						<strong>How to do it:</strong> Select a card from your hand and click the "Discard Hand
-						Card" button.
-					</li>
-					<li>
-						<strong>After the action:</strong> The selected card is removed from your hand, and your
-						turn ends immediately.
-					</li>
-				</ul>
-				<h2>🔚 End of Turn</h2>
-				<p>
-					Once your turn has finished, after performing an attack, boom or discard, the game
-					automatically draws new cards to replenish your hand, and play passes to the next player.
-				</p>
-				<h2>🚨 End of Game</h2>
-				<p>
-					The game ends when only one player remains with HP. The last player standing is declared
-					the winner!
-				</p>
-				<p>
-					<strong>Elimination:</strong> A player is eliminated when the sum of all their
-					accumulators' HP is equal to 0 at the end of their turn. This means you can be eliminated
-					even if you still have accumulators on the board with value 0.
-				</p>
 			</div>
 		</div>
 	);

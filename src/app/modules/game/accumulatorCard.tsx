@@ -1,53 +1,42 @@
-import { Accumulator } from '@/app/modules/game/model';
 import React, { JSX } from 'react';
 
-interface GameAccumulatorCardProps extends React.HTMLAttributes<HTMLDivElement> {
-	accumulator: Accumulator;
+interface ScorePileDisplayProps extends React.HTMLAttributes<HTMLDivElement> {
+	scorePile: number[];
 }
 
-export default function GameAccumulatorCard({
-	accumulator,
+/**
+ * ScorePileDisplay shows a summary of a player's banked score pile.
+ */
+export default function ScorePileDisplay({
+	scorePile,
 	style,
-	onClick,
 	...props
-}: GameAccumulatorCardProps): JSX.Element {
-	let remainingHp: number = accumulator.originalValue;
-	for (const attack of accumulator.attacks) {
-		remainingHp -= attack;
-	}
-	if (remainingHp < 0) {
-		remainingHp = 0;
-	}
-
-	const isClickable: boolean = typeof onClick === 'function' && !props['aria-disabled'];
-
-	const classNames: string = [
-		'accumulator-card',
-		isClickable ? 'clickable' : '',
-		props.className ?? '',
-	]
-		.join(' ')
-		.trim();
+}: ScorePileDisplayProps): JSX.Element {
+	const totalScore: number = scorePile.reduce((sum: number, val: number) => sum + val, 0);
+	const cardCount: number = scorePile.length;
 
 	return (
 		<div
-			className={classNames}
 			style={{
-				aspectRatio: '1 / 1',
 				backgroundColor: 'var(--container)',
 				display: 'flex',
 				flexDirection: 'column',
-				justifyContent: 'space-evenly',
+				justifyContent: 'center',
 				alignItems: 'center',
 				textAlign: 'center',
 				borderRadius: '10px',
-				...style, // Merge provided styles with default styles
+				padding: '10px',
+				minWidth: '60px',
+				border: '2px solid var(--safe, #4a9c6d)',
+				...style,
 			}}
-			onClick={onClick}
 			{...props}
 		>
-			<h1>{remainingHp}</h1>
-			{accumulator.attacks.length > 0 && <div>({accumulator.attacks.join(', ')})</div>}
+			<div style={{ fontSize: '0.7rem', opacity: 0.8, marginBottom: '4px' }}>BANKED</div>
+			<h2 style={{ margin: 0 }}>{totalScore}</h2>
+			<div style={{ fontSize: '0.8rem', opacity: 0.7 }}>
+				{cardCount} {cardCount === 1 ? 'card' : 'cards'}
+			</div>
 		</div>
 	);
 }

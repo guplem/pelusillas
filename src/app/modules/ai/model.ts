@@ -1,12 +1,12 @@
-import { Accumulator, HistoryElement } from '@/app/modules/game/model';
+import { HistoryElement } from '@/app/modules/game/model';
 
 /**
  * Represents the full game state snapshot provided to an AI strategy function.
- * Contains all information the AI needs to decide its next move.
+ * Contains all information the AI needs to decide its next move in Pelusillas.
  */
 export interface Scenario {
 	/**
-	 * The board of the game. Essentially an array of all players in the game linked to their accumulators (life storage cards).
+	 * The board of the game - all players and their current state.
 	 */
 	readonly board: Board[];
 	/**
@@ -18,9 +18,9 @@ export interface Scenario {
 	 */
 	readonly playerId: string;
 	/**
-	 * The cards currently in the AI player's hand (array of card values).
+	 * The number of cards remaining in the deck.
 	 */
-	readonly playerHand: number[];
+	readonly deckSize: number;
 	/**
 	 * The full action history of the game so far (in chronological order).
 	 */
@@ -28,7 +28,7 @@ export interface Scenario {
 }
 
 /**
- * Represents a single player's board state, including their accumulators (life storage cards).
+ * Represents a single player's board state in Pelusillas.
  */
 export interface Board {
 	/**
@@ -36,7 +36,11 @@ export interface Board {
 	 */
 	readonly playerId: string;
 	/**
-	 * The player's current accumulators (life storage cards on the board).
+	 * The player's current face-up cards (at risk of being lost).
 	 */
-	readonly accumulators: Accumulator[];
+	readonly faceUpCards: number[];
+	/**
+	 * The player's banked score pile (safe points).
+	 */
+	readonly scorePile: number[];
 }

@@ -1,71 +1,70 @@
-# 🎴 Boom - Web Card Game
+﻿#  Pelusillas - Web Card Game
 
-A real-time multiplayer web implementation of the **Boom** card game, built with [RoboJS](https://robojs.dev/) and React.
+A real-time multiplayer web implementation of **Pelusillas**, a push-your-luck card game inspired by *Zirkus Flohcati*, built with [RoboJS](https://robojs.dev/) and React.
 
-**Boom** is a strategic card game where players eliminate opponents by destroying their life storage cards. The last player standing wins!
+**Pelusillas** is a strategic push-your-luck game where players collect dust bunny cards to score points. Draw carefullyget too greedy and you might bust!
 
 > **Contribute your AI!** Anyone is more than welcome to develop new AI strategies and make a PR to add them. See the [Developing AI Strategies](#-developing-ai-strategies) section below for details.
 
-## 🚀 TL;DR - Quick Start for Non-Programmers
+##  TL;DR - Quick Start for Non-Programmers
 
-Want to just run the game? Here's the fastest way:
+Want to just run the game? Here''s the fastest way:
 
 1. **Install Node.js**: Download from [nodejs.org](https://nodejs.org/) (choose the LTS version).
-2. **Download this project**: Click the green "Code" button above → "Download ZIP" → Extract it.
+2. **Download this project**: Click the green "Code" button above  "Download ZIP"  Extract it.
 3. **Open a terminal/command prompt** in the extracted folder.
 4. **Run these commands**:
-  ```bash
-  npm install
-  npm run dev
-  ```
+   ```bash
+   npm install
+   npm run dev
+   ```
 5. **Open your browser** and go to `http://localhost:3000`.
 6. **Share the tunnel URL** (shown in your terminal) with friends to play together!
 
-That's it! 🎉
+That''s it! 
 
 ---
 
-## 🎮 Game Overview
+##  Game Overview
 
-**Boom** is a tactical card game for 2 or more players where the last one standing wins.
+**Pelusillas** is a push-your-luck card game for 2-6 players where the highest scorer wins.
 
-- **Goal**: Be the last player with life storage cards ("accumulators") remaining.
-- **Setup**: Each player starts with 3 cards in hand and 3 accumulator cards on the board.
-- **Gameplay**: On your turn, you can swap cards, attack opponents, use a powerful "Boom" ability, or discard.
-- **Cards**: Numbered cards store life and deal damage, while special cards (value 0) enable the "Boom" action.
+- **Goal**: Collect the most points by banking cards to your score pile.
+- **Setup**: 110 cards (values 1-10: 13 each of 1-5, 9 each of 6-10).
+- **Gameplay**: On your turn, draw cards face-up. Stop to keep them, or push your luck!
+- **Bust**: Draw a duplicate value with 3+ cards and lose everything!
+- **Stealing**: After your first 2 cards, you can steal from opponents instead of drawing.
 
-**📖 Full Rules**:
+** Full Rules**:
 - [Digital Game Help Page](/help) _(in-game rules for the web version)_
-- [Physical Version: English Rules](./rules/Physical%20Version/EN.md)
-- [Physical Version: Spanish Rules](./rules/Physical%20Version/ES.md)
 
-## 🛠️ Prerequisites for Development
+##  Prerequisites for Development
 
 - [Node.js](https://nodejs.org/) v22 or newer
 - [npm](https://www.npmjs.com/) (comes with Node.js)
 - A modern web browser
 - *(Optional)* [Google Cloud Platform account](https://console.cloud.google.com/) for deployment
 
-## 🏗️ Development Setup
+##  Development Setup
 
 1. **Clone the repository**:
-  ```bash
-  git clone https://github.com/guplem/boom.git
-  cd boom
-  ```
+   ```bash
+   git clone https://github.com/yourusername/pelusillas.git
+   cd pelusillas
+   ```
 
 2. **Install dependencies**:
-  ```bash
-  npm install
-  ```
+   ```bash
+   npm install
+   ```
 
 3. **Start the development server**:
-  ```bash
-  npm run dev
-  ```
-  This will start the server at `http://localhost:3000/` and provide a public tunnel URL for multiplayer testing.
+   ```bash
+   npm run dev
+   ```
+   This will start the server at `http://localhost:3000/` and provide a public tunnel URL for multiplayer testing.
 
-## 🏛️ Technology Stack
+##  Technology Stack
 
 This project uses a modern web stack to create a real-time, interactive experience.
 
@@ -77,126 +76,76 @@ This project uses a modern web stack to create a real-time, interactive experien
 - **Styling**: Plain CSS with modern features.
 - **Code Quality**: ESLint, Prettier.
 
-## 🧠 Application & Game Flow
+##  Application & Game Flow
 
-The application is structured around a clear separation of concerns: room management, lobby setup, and the core game loop. State management is key to its real-time functionality.
+The application is structured around a clear separation of concerns: room management, lobby setup, and the core game loop.
 
 ### 1. Initial Load & Room Selection
 
 1. **Entry Point (`index.tsx` -> `App.tsx`)**: The app initializes, setting up React Router and the `SyncContextProvider`.
-2. **User Identification**: On first load, `UserStore` (a Zustand store) generates and persists a unique ID for the browser session in `localStorage`. This ID is used to determine ownership of players.
-3. **Room Handling (`App.tsx`)**:
-  - The app checks the URL for a `?room=` parameter. If present, it validates the room's existence via a `HEAD` request to `/api/room` and automatically joins it.
-  - If no room is joined, the `RoomPage` is displayed, offering to create or join a room.
-  - `RoomCreator` and `RoomPicker` components handle API calls to the backend (`src/api/room.ts`), which uses `Flashcore` to manage the list of available rooms.
-  - Once a room is joined, `RoomStore` (another Zustand store) saves the room name, and the app transitions to the `GamePage`.
+2. **User Identification**: `UserStore` generates and persists a unique ID for the browser session.
+3. **Room Handling**: Create or join a room, then transition to the game lobby.
 
 ### 2. The Lobby (`PlayerPage.tsx`)
 
-1. **Synchronized State**: In the lobby, the `players` array is the first piece of state synchronized by `@robojs/sync`'s `useSyncState` hook. Any player added or removed by one client is instantly reflected on all other clients in the same room.
-2. **Player Creation**: The `PlayerCreationForm` allows users to add players.
-  - A user can create multiple AI players but only **one** human player (enforced by `validatePlayerAddition` in `player/manager.ts`).
-  - Each player is assigned an owner ID matching the user's session ID.
-3. **Starting the Game**: The "Start Game" button calls `gameContext.startGame`. This function initializes the main `game` object, which is also a synchronized state via `useSyncState`. The app then transitions from the lobby view to the game board.
+1. **Synchronized State**: Players are synchronized via `@robojs/sync`.
+2. **Player Creation**: Add human or AI players.
+3. **Starting the Game**: Initialize the game with deck and player setup.
 
-### 3. The Core Game Loop (Event-Driven)
+### 3. The Core Game Loop
 
-The game does not run on a traditional timer-based loop. Instead, it's **entirely event-driven**, reacting to changes in the shared `game` state. The `GamePage.tsx` component orchestrates this flow.
+The game is **event-driven**, reacting to changes in the shared `game` state.
 
-#### Human Player's Turn
+#### Human Player''s Turn
 
-1. **UI Enablement**: The `GameBoardPage.tsx` component renders the main interface. It checks if the current player's ID matches the human player's ID and enables/disables controls accordingly.
-2. **Action Selection**:
-  - The user clicks a card in their hand (`GameHandCard.tsx`), which is stored in a local `useState` hook (`handSelected`).
-  - The user then clicks a valid target (an opponent's accumulator for an attack, or their own for a swap).
-3. **Executing the Action**: This UI interaction calls `gameContext.executeAction`, passing an `ActionConfig` object that defines the move (e.g., `{ action: 'attack', params: { ... } }`).
+1. **Banking Phase**: Cards from the previous turn are automatically banked.
+2. **Action Phase**: Draw from deck, steal from opponents, or stop to keep cards.
+3. **Bust Check**: Drawing a duplicate with 3+ cards causes a bust.
 
-#### AI Player's Turn
+#### AI Player''s Turn
 
-1. **The Trigger**: The `useEffect` hook in `GamePage.tsx` listens for any changes to the synchronized `game` object.
-2. **Turn Check**: After each state update, this `useEffect` checks if the game is running and if the current player (`getCurrentPlayer(game)`) is an AI owned by the current user.
-3. **Strategy Execution**: If it's the AI's turn, `executeAiStrategy` (`ai/manager.ts`) is called.
-  - It builds a `Scenario` object (a complete, read-only snapshot of the game).
-  - It passes this `Scenario` to the AI's selected strategy function (e.g., `randomAttackStrategy`).
-  - The strategy function analyzes the `Scenario` and returns its desired `ActionConfig`.
-  - `executeAiStrategy` then calls the same `gameContext.executeAction` function that a human player uses.
+1. The game detects when it''s an AI''s turn.
+2. The AI strategy analyzes the scenario and decides to draw or stop.
+3. The action is executed through the same game manager.
 
-### 4. Action Resolution & Turn Advancement
+### 4. Game End
 
-This is the heart of the game's rules engine, located in `src/app/modules/game/manager.ts`.
+The game ends when the deck is empty. Remaining face-up cards are banked, and the player with the highest score wins. Tiebreaker: most unique card values.
 
-1. **Central Hub (`executeAction`)**: All actions, whether from a human or AI, are processed here.
-2. **Validation (`getNextGameState`)**:
-  - This pure function is the core of the game logic. It takes the current game state and an action.
-  - It performs all necessary validation (Is it the player's turn? Is the move legal? e.g., "Can't attack with a card value higher than the accumulator's HP?").
-  - If the action is valid, it returns a **new, updated game state**. If invalid, it returns `null`.
-3. **State Update**:
-  - If `getNextGameState` returns a new state, `executeAction` commits it using `setGame()`.
-  - `@robojs/sync` detects this change and instantly broadcasts the new `game` state to all connected clients.
-4. **Turn Advancement (`advanceToNextTurn`)**:
-  - After a valid action, this function is called.
-  - It checks for win/draw conditions by seeing how many players have > 0 HP. If the game ends, it sets the `winnerId`.
-  - Otherwise, it increments the `turn` counter, skipping any eliminated players until it finds the next living player.
-5. **The Loop Continues**: This change to the `turn` number (or `winnerId`) is part of the new game state. The `useEffect` in `GamePage.tsx` detects this change, and the cycle begins again.
-
-This event-driven architecture ensures that the game state is always the single source of truth, and the UI and AI players simply *react* to its changes.
-
-## 🚀 Deployment (Optional)
+##  Deployment (Optional)
 
 This project is pre-configured for deployment to **Google Cloud Run**.
 
-1. **Update service name** in `cloudbuild.yaml`:
-    ```yaml
-    substitutions:
-      _SERVICE_NAME: boom-card-game # Or your preferred service name
-    ```
+1. **Update service name** in `cloudbuild.yaml`.
 2. Follow the official [RoboJS Cloud Run deployment guide](https://robojs.dev/hosting/cloud-run).
 3. Pushes to the `main` branch will trigger automatic deployments.
 
-## 🤝 Contributing
+##  Contributing
 
 Contributions are welcome! This is an evolving project with many opportunities for improvement.
 
-### 🤖 Developing AI Strategies
+###  Developing AI Strategies
 
-The game includes a simple, extensible AI system. You can easily create and add your own strategies.
+The game includes a simple, extensible AI system.
 
 1. **Create a Strategy File**: Add a new file in `src/app/modules/ai/strategies/`.
-2. **Define the Strategy Function**: Export a function that accepts a `Scenario` object and returns an `ActionConfig`. The `Scenario` gives you a complete snapshot of the game state.
+2. **Define the Strategy Function**: Export a function that accepts a `Scenario` and returns an `ActionConfig`.
 
     ```typescript
     // src/app/modules/ai/strategies/myCleverStrategy.ts
-    import { Scenario } from '@/app/modules/ai/model';
-    import { ActionConfig, ActionTypes } from '@/app/modules/game/model';
+    import { Scenario } from ''@/app/modules/ai/model'';
+    import { ActionConfig, ActionTypes } from ''@/app/modules/game/model'';
 
     export const myCleverStrategy = (gameScenario: Scenario): ActionConfig => {
-      // TODO: Implement your brilliant AI logic here!
-      // Analyze the board, hand, and history to make a decision.
-
-      // Return the chosen action
+      // Analyze faceUpCards, scorePile, and deck size
+      // Decide whether to draw or stop
+      
       return {
-        action: ActionTypes.Attack,
-        params: { /* ... */ }
+        action: ActionTypes.Draw,
+        params: { fromDeck: true }
       };
     };
     ```
 
-3. **Register Your Strategy**: Import and add your strategy to the `strategiesList` in `src/app/modules/ai/strategies.ts`.
-
-    ```typescript
-    // src/app/modules/ai/strategies.ts
-    import { myCleverStrategy } from './strategies/myCleverStrategy';
-
-    export const strategiesList = [
-      // ... existing strategies
-      {
-        name: 'My Clever Strategy',
-        description: 'A brief description of what your AI does.',
-        getActionFunction: myCleverStrategy,
-        maxAttempts: 20 // Optional: Retries if the AI returns an invalid move.
-      },
-    ];
-    ```
-4. **Test It**: Run `npm run dev` and select your new strategy from the dropdown in the game lobby.
-
-**Note on Robustness**: The game manager will try to execute the action returned by your AI. If it's invalid, it will retry. The system also has a fallback mechanism (`executeFallbackAction` in `ai/manager.ts`) that will perform a safe "discard" action if the AI fails to produce a valid move after all attempts, ensuring the game never gets stuck.
+3. **Register Your Strategy**: Add to `strategiesList` in `src/app/modules/ai/strategies.ts`.
+4. **Test It**: Run `npm run dev` and select your strategy in the game lobby.
