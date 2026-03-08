@@ -35,7 +35,7 @@ That''s it!
 - **Bust**: Draw a duplicate when you have 3 or more cards and lose everything!
 - **Stealing**: When you draw a card, you can choose to steal matching cards from opponents (doesn't cause bust).
 
-** Full Rules**:
+**Full Rules**:
 - [Digital Game Help Page](/help) _(in-game rules for the web version)_
 
 ##  Prerequisites for Development
